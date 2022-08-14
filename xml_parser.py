@@ -1,5 +1,6 @@
 import xml.sax
 from page import Page
+from indexer import Indexer
 
 class HandlePages(xml.sax.ContentHandler):
     
@@ -25,23 +26,25 @@ class HandlePages(xml.sax.ContentHandler):
             pag = Page()
             # if self.currTag == ""
             # self.text = self.text.join(self.currText)
-            print(self.text)
+            # print(self.text)
             title, infobox, body, categories, links, references = pag.processCorpus(self.text, self.title)
-            print("============================")
-            print(title)
-            print("-----------------")
-            print(infobox)
-            print("-----------------")
-            print(body)
-            print("-----------------")
-            print(categories)
-            print("-----------------")
-            print(links)
-            print("-----------------")
-            print(references)
-            print("============================")
+            # print("============================")
+            # print(title)
+            # print("-----------------")
+            # print(infobox)
+            # print("-----------------")
+            # print(body)
+            # print("-----------------")
+            # print(categories)
+            # print("-----------------")
+            # print(links)
+            # print("-----------------")
+            # print(references)
+            # print("============================")
             # if len(processed_data)>1:
             #     print(processed_data[1])
+            i = Indexer( title, body, infobox, categories, links, references)
+            i.createIndex()
             self.currTag = ''
             self.title = ''
             self.text = ''
