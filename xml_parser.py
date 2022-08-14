@@ -4,7 +4,7 @@ from page import Page
 class HandlePages(xml.sax.ContentHandler):
     
     def __init__(self) -> None:
-        super().__init__()
+        # super().__init__()
         self.currTag = ''
         self.title = ''
         self.text = ''
@@ -25,31 +25,31 @@ class HandlePages(xml.sax.ContentHandler):
             pag = Page()
             # if self.currTag == ""
             # self.text = self.text.join(self.currText)
-            # print(self.text)
+            print(self.text)
             title, infobox, body, categories, links, references = pag.processCorpus(self.text, self.title)
-            # print("============================")
-            # print(title)
-            # print("-----------------")
-            # print(infobox)
-            # print("-----------------")
-            # print(body)
-            # print("-----------------")
-            # print(categories)
-            # print("-----------------")
-            # print(links)
-            # print("-----------------")
-            # print(references)
-            # print("============================")
+            print("============================")
+            print(title)
+            print("-----------------")
+            print(infobox)
+            print("-----------------")
+            print(body)
+            print("-----------------")
+            print(categories)
+            print("-----------------")
+            print(links)
+            print("-----------------")
+            print(references)
+            print("============================")
             # if len(processed_data)>1:
             #     print(processed_data[1])
             self.currTag = ''
             self.title = ''
             self.text = ''
             self.pageId = ''
-            self.currText = ''
+            # self.currText = ''
         elif tag == 'text':
             if self.numbytes > 50000:
-                self.text = self.text.join(self.currText)
+                self.text = "".join([self.text, self.currText])
     
     def characters(self, content):
         if self.currTag == 'title':
@@ -74,7 +74,7 @@ class Parser():
     
     def __init__(self, file) -> None:
         self.parser = xml.sax.make_parser()
+        self.parser.setFeature(xml.sax.handler.feature_namespaces, 0)
         self.handler = HandlePages()
         self.parser.setContentHandler(self.handler)
-        self.parser.setFeature(xml.sax.handler.feature_namespaces, 0)
         self.parser.parse(file)

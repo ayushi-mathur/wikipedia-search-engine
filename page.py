@@ -11,7 +11,7 @@ class Page():
         pass
     
     def cleanData(self, data):
-        tokens_to_replace = ['http', "&nbsp;", "&lt;", "&gt;", "&amp;", "&quot;", "&apos;", "\—", "\%", "\$", "'", "~", "\\", "\.", "*", "\[", "\]", "\:", "\;", "\,", "\{", "\}", "\(", "\)", "\=", "\+", "\-", "\_", "\#", "\!", "\`", "\"", "\?", "\/", "\>", "\<", "\&", "\\", "\u2013", "\n", "\{", "\}"]
+        tokens_to_replace = ['http', "&nbsp;", "&lt;", "&gt;", "&amp;", "&quot;", "&apos;", "\—", "\%", "\$", "'", "~", "\\", "\.", "*", "\[", "\]", "\:", "\;", "\,", "\{", "\}", "\(", "\)", "\=", "\+", "\-", "\_", "\#", "\!", "\`", "\"", "\?", "\/", "\>", "\<", "\&", "\\", "\u2013", "\n", "\{", "\}", "|", "=", "*"]
         for token in tokens_to_replace:
             data.replace(token, " ")
         return data
@@ -36,6 +36,8 @@ class Page():
         # Case lowering
         text = text.lower()
         title = title.lower()
+        text = text.replace("\n", " ")
+        title = title.replace("\n", " ")
 
         string_to_replace = [" ==", "== "]
         for s in string_to_replace:
@@ -55,7 +57,9 @@ class Page():
         return title, infobox, body, categories, externalLinks, references
     
     def getBody(self, text):
-        text = re.sub(r'\{\{.*\}\}', ' ', text)
+        # text = re.sub(r'\{\{.*\}\}', r' ', text)
+        text = re.sub(r'\{\{infobox.*?\}\}', r' ', text)
+
         body = self.getStemmedTokens(text)
         return body
     
