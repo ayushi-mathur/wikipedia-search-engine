@@ -25,10 +25,21 @@ class HandlePages(xml.sax.ContentHandler):
             pag = Page()
             # if self.currTag == ""
             # self.text = self.text.join(self.currText)
-            print(self.text)
-            processed_data = pag.processCorpus(self.text, self.title)
-            
-            print(processed_data[0])
+            # print(self.text)
+            title, infobox, body, categories, links, references = pag.processCorpus(self.text, self.title)
+            # print("============================")
+            # print(title)
+            # print("-----------------")
+            # print(infobox)
+            # print("-----------------")
+            # print(body)
+            # print("-----------------")
+            # print(categories)
+            # print("-----------------")
+            # print(links)
+            # print("-----------------")
+            # print(references)
+            # print("============================")
             # if len(processed_data)>1:
             #     print(processed_data[1])
             self.currTag = ''
@@ -36,23 +47,21 @@ class HandlePages(xml.sax.ContentHandler):
             self.text = ''
             self.pageId = ''
             self.currText = ''
-            # TODO
-            # pag = Page()
         elif tag == 'text':
-            if self.numbytes > 1000 or True:
+            if self.numbytes > 50000:
                 self.text = self.text.join(self.currText)
     
     def characters(self, content):
         if self.currTag == 'title':
             self.title = "".join([self.title, content])
         elif self.currTag == 'text':
-            if self.numbytes < 1000:
+            if self.numbytes < 50000:
                 self.text = "".join([self.text, content])
                 # print(content)
                 
             else:
                 self.currText = "".join([self.currText, content])
-                if self.scounts<300:
+                if self.scounts<3000:
                     self.scounts+=1
                 else:
                     self.text = "".join([self.text, self.currText])

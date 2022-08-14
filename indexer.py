@@ -31,4 +31,43 @@ class Indexer():
         self.title, self.body, self.info, self.categories, self.links, self.references = title, body, info, categories, links, references 
     
     def createIndex(self):
-        Id = 
+        Id = self.num_encode(Indexer.pageCount)
+        freq_dict = defaultdict(int)
+        common_freq_dict = defaultdict(int)
+        
+        for word in self.title:
+            freq_dict[word]+=1
+            common_freq_dict[word]+=1
+        title = freq_dict
+        
+        freq_dict = defaultdict(int)
+        for word in self.categories:
+            freq_dict[word]+=1
+            common_freq_dict[word]+=1
+        categories = freq_dict
+        
+        freq_dict = defaultdict(int)
+        for word in self.info:
+            freq_dict[word]+=1
+            common_freq_dict[word]+=1
+        info = freq_dict
+        
+        freq_dict = defaultdict(int)
+        for word in self.references:
+            freq_dict[word]+=1
+            common_freq_dict[word]+=1
+        references = freq_dict
+        
+        freq_dict = defaultdict(int)
+        for word in self.body:
+            freq_dict[word]+=1
+            common_freq_dict[word]+=1
+        body = freq_dict
+        
+        freq_dict = defaultdict(int)
+        for word in self.links:
+            freq_dict[word]+=1
+            common_freq_dict[word]+=1
+        links = freq_dict
+        
+        
