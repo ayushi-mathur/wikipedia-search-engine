@@ -11,23 +11,23 @@ class Page():
         pass
     
     def cleanData(self, data):
-        tokens_to_replace = ['http', "&nbsp;", "&lt;", "&gt;", "&amp;", "&quot;", "&apos;", "=", "\—", "\%", "\$", "'", "~", "\\", "\.", "*", "[", "]", "\:", "\;", "\,", "{", "}", "(", ")", "=", "+", "-", "_", "#", "!", "`", "\"", "?", "/", ">", "<", "&", "\\", "\u2013", "\n", "{", "}", "|", "=", "*", "!", '"', "$", ",", "@", ".", "%", "^"]
+        tokens_to_replace = ['—', '|', '&apos;', '&', "'", '–', '=', '#', '[', ':', '&quot;', ']', '^', '%', '`', '!', '+', '&lt;', '{', '"', '&gt;', '&nbsp;', '}', '*', '/', '~', '.', ',', '@', '_', '(', '\n', ';', '\\', '>', '<', 'http', '-', ')', '$', '?', '&amp;']
         for token in tokens_to_replace:
             data = data.replace(token, " ")
         return data
 
+    
     def getStemmedTokens(self, data):
         data = data.encode("ascii", errors="ignore").decode()
 
         data = self.cleanData(data)
         
         data = data.split()
+        stemmedtokens = [ele for ele in data if ele.isalpha()]
         stemmedtokens = list()
         for word in data:
             Page.uniqueTokens.add(word)
-            if word in Page.stopWords:
-                stemmedtokens.append("")
-            else:
+            if word not in Page.stopWords:
                 stemmedtokens.append(Page.stemmer.stemWord(word))
         return stemmedtokens
     
@@ -36,8 +36,8 @@ class Page():
         # Case lowering
         text = text.lower()
         title = title.lower()
-        text = text.replace("\n", " ")
-        title = title.replace("\n", " ")
+        # text = text.replace("\n", " ")
+        # title = title.replace("\n", " ")
 
         string_to_replace = [" ==", "== "]
         for s in string_to_replace:
@@ -58,7 +58,7 @@ class Page():
     
     def getBody(self, text):
         # text = re.sub(r'\{\{.*\}\}', r' ', text)
-        text = re.sub(r'\{\{infobox.*?\}\}', r' ', text)
+        text = re.sub(r'{{infobox(.|\n|\r)*?^}}$', r' ', text)
 
         body = self.getStemmedTokens(text)
         return body
@@ -69,7 +69,7 @@ class Page():
         for i in range(1, len(infobox_text)):
             index = infobox_text[i].find("}}")
             # if index == -1
-            infobox_data = "".join([infobox_data, infobox_text[i][:index]])
+            infobox_data = " ".join([infobox_data, infobox_text[i][:index]])
         infobox = self.getStemmedTokens(infobox_data)
         return infobox
     
@@ -88,7 +88,7 @@ class Page():
         categories = ""
         for i in range(1, len(data)):
             index = data[i].find("\]\]")
-            categories = "".join([categories, data[i][:index]])
+            categories = " ".join([categories, data[i][:index]])
         categories = self.getStemmedTokens(categories)
         return categories
     

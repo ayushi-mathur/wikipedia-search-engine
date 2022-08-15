@@ -130,7 +130,6 @@ class Indexer:
         Indexer.indexMapC = defaultdict(list)
 
         Indexer.fileCount += 1
-        print("YAY")
         
     def mergeFiles(file_field):
         pq = []
@@ -140,7 +139,7 @@ class Indexer:
         topLine = {}
         pageCount = 0
         
-        print(Indexer.fileCount)
+        # print(Indexer.fileCount)
         finalFileCount = 0
         for ind in range(Indexer.fileCount):
             file_name = "".join([sys.argv[2], '/index', file_field + str(ind) + '.txt'])
@@ -155,7 +154,7 @@ class Indexer:
         top_ele = ""
         count = 1
         curr_word = ""
-        curr_data = []
+        curr_data = ""
         data = []
         
         while pq:
@@ -166,15 +165,15 @@ class Indexer:
                 Indexer.writeFile(pageCount, file_field, data)
                 data = []
                 pageCount += 1
-            print("W ", curr_word)
+            
             if curr_word!=top_ele[0] and curr_word!="":
-                print("LMAOO",curr_data)
+                
                 data.append(curr_data)
                 count+=1
                 curr_word = top_ele[0]
                 curr_data = topLine[new_ind]
             else:
-                curr_data.append(topLine[new_ind])
+                curr_data += " ".join(wordsTopLine[new_ind][1:])
                 curr_word = top_ele[0]
             
             topLine[new_ind] = files[new_ind].readline().strip()
