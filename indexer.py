@@ -77,17 +77,17 @@ class Indexer:
         
         for word in common_freq_dict.keys():
             if word in title:
-                Indexer.indexMapT[word].append(Id)
+                Indexer.indexMapT[word].append(f"{Id}:{title[word]}")
             if word in references:
-                Indexer.indexMapR[word].append(Id)
+                Indexer.indexMapR[word].append(f"{Id}:{references[word]}")
             if word in info:
-                Indexer.indexMapI[word].append(Id)
+                Indexer.indexMapI[word].append(f"{Id}:{info[word]}")
             if word in body:
-                Indexer.indexMapB[word].append(Id)
+                Indexer.indexMapB[word].append(f"{Id}:{body[word]}")
             if word in categories:
-                Indexer.indexMapC[word].append(Id)
+                Indexer.indexMapC[word].append(f"{Id}:{categories[word]}")
             if word in links:
-                Indexer.indexMapL[word].append(Id)
+                Indexer.indexMapL[word].append(f"{Id}:{links[word]}")
         
         Indexer.pageCount += 1
         
@@ -100,14 +100,15 @@ class Indexer:
 
         data = []
         for key in sorted(index.keys()):
-            string = key + ' '
+            string = f"{key} "
             postings = index[key]
             string += ' '.join(postings)
             data.append(string)
 
         filename = sys.argv[2] + '/index' + str(fieldindicator)+ str(fileCount) + '.txt'
+        data = '\n'.join(data)
         with open(filename, 'w') as f:
-            f.write('\n'.join(data))
+            f.write(data)
 
         return
     
@@ -186,7 +187,7 @@ class Indexer:
         
         data.append(curr_data)
         count+=1
-        print(f"{curr_word} => {curr_data}")
+        # print(f"{curr_word} => {curr_data}")
         Indexer.writeFile(pageCount, file_field, data)
         
     @staticmethod
