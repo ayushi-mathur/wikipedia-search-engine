@@ -22,10 +22,9 @@ class Indexer:
     @staticmethod
     def num_encode(n):
         s = []
-        while 1:
+        while n>0:
             n, r = divmod(n, Indexer.BASE)
             s.append(Indexer.ALPHABET[r])
-            if n == 0: break
         return ''.join(reversed(s))
 
     # Decodes a base 64 coding to a positive integer
@@ -36,9 +35,8 @@ class Indexer:
             n = n * Indexer.BASE + Indexer.ALPHABET_REVERSE[c]
         return n
 
-    
     def createIndex(self):
-        Id = self.num_encode(Indexer.pageCount)
+        Id = Indexer.num_encode(Indexer.pageCount)
         freq_dict = defaultdict(int)
         common_freq_dict = defaultdict(int)
         
@@ -193,6 +191,8 @@ class Indexer:
     @staticmethod
     def writeFile(pageCount, file_field, data):
         fil = "".join([sys.argv[2], '/index_', file_field + str(pageCount) + '.txt'])
+        if fil=="":
+            return
         fil = open(fil, "w")
         data = "\n".join(data)
         fil.write(data)

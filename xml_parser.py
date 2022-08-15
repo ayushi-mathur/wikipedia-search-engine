@@ -52,22 +52,22 @@ class HandlePages(xml.sax.ContentHandler):
             # self.currText = ''
         elif tag == 'text':
             if self.numbytes > 50000:
-                self.text = "".join([self.text, self.currText])
+                self.text = " ".join([self.text, self.currText])
     
     def characters(self, content):
         if self.currTag == 'title':
-            self.title = "".join([self.title, content])
+            self.title = " ".join([self.title, content])
         elif self.currTag == 'text':
             if self.numbytes < 50000:
-                self.text = "".join([self.text, content])
+                self.text = " ".join([self.text, content])
                 # print(content)
                 
             else:
-                self.currText = "".join([self.currText, content])
+                self.currText = " ".join([self.currText, content])
                 if self.scounts<3000:
                     self.scounts+=1
                 else:
-                    self.text = "".join([self.text, self.currText])
+                    self.text = " ".join([self.text, self.currText])
                     self.currText = ''
                     self.scounts = 0
         elif self.currTag == 'id' and self.pageId == '':

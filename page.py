@@ -11,11 +11,13 @@ class Page():
         pass
     
     def cleanData(self, data):
-        tokens_to_replace = ['—', '|', '&apos;', '&', "'", '–', '=', '#', '[', ':', '&quot;', ']', '^', '%', '`', '!', '+', '&lt;', '{', '"', '&gt;', '&nbsp;', '}', '*', '/', '~', '.', ',', '@', '_', '(', '\n', ';', '\\', '>', '<', 'http', '-', ')', '$', '?', '&amp;']
+        tokens_to_replace = ['—', '|', '&apos;', '&', "'", '–', '=', '#', '[', ':', '&quot;', ']', '^', '%', '`', '!', '+', '&lt;', '{', '"', '&gt;', '&nbsp;', '}', '*', '/', '~', '.', ',', '@', '_', '(', '\n', ';', '\\', '>', '<', 'http', '-', ')', '$', '?', '&amp;', "\n"]
         for token in tokens_to_replace:
             data = data.replace(token, " ")
         return data
 
+    def isValid(self, ele):
+        return ele not in Page.stopWords and ele.isalpha()
     
     def getStemmedTokens(self, data):
         data = data.encode("ascii", errors="ignore").decode()
@@ -23,12 +25,8 @@ class Page():
         data = self.cleanData(data)
         
         data = data.split()
-        stemmedtokens = [ele for ele in data if ele.isalpha()]
-        stemmedtokens = list()
-        for word in data:
-            Page.uniqueTokens.add(word)
-            if word not in Page.stopWords:
-                stemmedtokens.append(Page.stemmer.stemWord(word))
+        stemmedtokens = [ele for ele in data if self.isValid(ele)]
+        stemmedtokens = Page.stemmer.stemWords(stemmedtokens)
         return stemmedtokens
     
     def processCorpus(self, text, title):
