@@ -10,48 +10,30 @@ class HandlePages(xml.sax.ContentHandler):
         self.title = ''
         self.text = ''
         self.pageId = 0
-        self.numbytes = 0
-        self.currText = ''
-        self.scounts = 0
     
     def startElement(self, tag, attrs):
         self.currTag = tag
-        if tag == 'text':
-            attrib_set = attrs.getNames()
-            if "bytes" in attrib_set:
-                self.numbytes = int(attrs.getValue("bytes"))
     
+    def isUseful(self):
+        return not self.title.startswith("Wikipedia:")
+
     def endElement(self, tag):
         if tag == 'page':
-            pag = Page()
-            title, infobox, body, categories, links, references = pag.processCorpus(self.text, self.title)
-            i = Indexer(title, body, infobox, categories, links, references)
-            i.createIndex()
+            if self.isUseful():
+                pag = Page()
+                title, infobox, body, categories, links, references = pag.processCorpus(self.text, self.title)
+                i = Indexer(title, body, infobox, categories, links, references)
+                i.createIndex()
             self.currTag = ''
             self.title = ''
             self.text = ''
-            self.pageId = ''
-            # self.currText = ''
-        elif tag == 'text':
-            if self.numbytes > 50000:
-                self.text = " ".join([self.text, self.currText])
+            self.pageId = 0
     
     def characters(self, content):
         if self.currTag == 'title':
             self.title = " ".join([self.title, content])
         elif self.currTag == 'text':
-            if self.numbytes < 50000:
-                self.text = " ".join([self.text, content])
-                # print(content)
-                
-            else:
-                self.currText = " ".join([self.currText, content])
-                if self.scounts<3000:
-                    self.scounts+=1
-                else:
-                    self.text = " ".join([self.text, self.currText])
-                    self.currText = ''
-                    self.scounts = 0
+            self.text = " ".join([self.text, content])
         elif self.currTag == 'id' and self.pageId == '':
             self.pageId = content
     

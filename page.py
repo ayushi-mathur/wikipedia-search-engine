@@ -17,7 +17,7 @@ class Page():
         return data
 
     def isValid(self, ele):
-        return ele not in Page.stopWords and ele.isalpha()
+        return ele not in Page.stopWords and ele.isalpha() and ( 3 < len(ele) < 15 )
     
     def getStemmedTokens(self, data):
         data = data.encode("ascii", errors="ignore").decode()
@@ -56,7 +56,7 @@ class Page():
     
     def getBody(self, text):
         # text = re.sub(r'\{\{.*\}\}', r' ', text)
-        text = re.sub(r'{{infobox(.|\n|\r)*?^}}$', r' ', text)
+        text = re.sub(r'{{infobox(.|\n|\r)*?^}}$', r' ', text, flags=re.M)
 
         body = self.getStemmedTokens(text)
         return body
@@ -65,19 +65,18 @@ class Page():
         infobox_data = ""
         infobox_text = text.split("{{infobox")
         for i in range(1, len(infobox_text)):
-            index = infobox_text[i].find("}}")
-            # if index == -1
-            infobox_data = " ".join([infobox_data, infobox_text[i][:index]])
+            curr_infobox = infobox_text[i].split("\n")
+            for line in curr_infobox:
+                if line.strip() == "}}": break
+                infobox_data = " ".join([infobox_data, line])
         infobox = self.getStemmedTokens(infobox_data)
         return infobox
     
     def getReferences(self, text):
         # Remove data after the next == to remove the external links
-        data = text.split('==')
+        data = text.split('==', maxsplit=1)
         data = data[0]
-        
-        #TODO: Do more cleaning
-        
+
         references = self.getStemmedTokens(data)
         return references
     
@@ -95,6 +94,5 @@ class Page():
         if(len(data)==1):
             return []
         data = data[1]
-        # TODO: Addd more cleaning
         external_links = self.getStemmedTokens(data)
         return external_links
