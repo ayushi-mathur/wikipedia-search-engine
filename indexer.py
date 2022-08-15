@@ -77,17 +77,17 @@ class Indexer:
         
         for word in common_freq_dict.keys():
             if word in title:
-                Indexer.indexMapT[word].append(str(Id))
+                Indexer.indexMapT[word].append(Id)
             if word in references:
-                Indexer.indexMapR[word].append(str(Id))
+                Indexer.indexMapR[word].append(Id)
             if word in info:
-                Indexer.indexMapI[word].append(str(Id))
+                Indexer.indexMapI[word].append(Id)
             if word in body:
-                Indexer.indexMapB[word].append(str(Id))
+                Indexer.indexMapB[word].append(Id)
             if word in categories:
-                Indexer.indexMapC[word].append(str(Id))
+                Indexer.indexMapC[word].append(Id)
             if word in links:
-                Indexer.indexMapL[word].append(str(Id))
+                Indexer.indexMapL[word].append(Id)
         
         Indexer.pageCount += 1
         
@@ -124,7 +124,7 @@ class Indexer:
         Indexer.indexMapI = defaultdict(list)
         Indexer.indexMapB = defaultdict(list)
         Indexer.indexMapL = defaultdict(list)
-        Indexer.indexMapR = defaultdict(list)
+        Indexer.indexMapT = defaultdict(list)
         Indexer.indexMapC = defaultdict(list)
 
         Indexer.fileCount += 1
@@ -145,9 +145,8 @@ class Indexer:
             topLine[ind]=files[ind].readline().strip()
             if topLine[ind] != '':
                 wordsTopLine[ind] = topLine[ind].split()
-                if wordsTopLine[ind][0] not in pq:
-                    tup = (wordsTopLine[ind][0], ind)
-                    heapq.heappush(pq, tup)
+                tup = (wordsTopLine[ind][0], ind)
+                heapq.heappush(pq, tup)
         
         top_ele = ""
         count = 1
@@ -160,9 +159,9 @@ class Indexer:
             new_ind = top_ele[1]
             
             if count%VOCAB_PER_FILE == 0:
-                Indexer.writeFile(pageCount, file_field, data)
+                pageCount = Indexer.writeFile(pageCount, file_field, data)
                 data = []
-                pageCount += 1
+                count=1
             
             if curr_word!=top_ele[0] and curr_word!="":
                 
@@ -171,7 +170,7 @@ class Indexer:
                 curr_word = top_ele[0]
                 curr_data = topLine[new_ind]
             else:
-                curr_data += " ".join(wordsTopLine[new_ind][1:])
+                curr_data += " " + " ".join(wordsTopLine[new_ind][1:])
                 curr_word = top_ele[0]
             
             topLine[new_ind] = files[new_ind].readline().strip()
@@ -181,22 +180,25 @@ class Indexer:
                 heapq.heappush(pq, tup)
             else:
                 files[new_ind].close()
+                wordsTopLine[new_ind] = []
                 file_name = "".join([sys.argv[2], '/index', file_field + str(new_ind) + '.txt'])
                 os.remove(file_name)
         
         data.append(curr_data)
         count+=1
+        print(f"{curr_word} => {curr_data}")
         Indexer.writeFile(pageCount, file_field, data)
         
     @staticmethod
     def writeFile(pageCount, file_field, data):
         fil = "".join([sys.argv[2], '/index_', file_field + str(pageCount) + '.txt'])
-        if fil=="":
-            return
+        if  data=="" or data==" ":
+            return pageCount
         fil = open(fil, "w")
         data = "\n".join(data)
         fil.write(data)
         fil.close()
+        return pageCount+1
     
     @staticmethod
     def mergedata():
