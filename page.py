@@ -25,6 +25,9 @@ class Page():
         data = self.cleanData(data)
         
         data = data.split()
+        for ele in data:
+            Page.uniqueTokens.add(ele)
+
         stemmedtokens = [ele for ele in data if self.isValid(ele)]
         stemmedtokens = Page.stemmer.stemWords(stemmedtokens)
         return stemmedtokens

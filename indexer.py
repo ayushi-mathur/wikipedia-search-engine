@@ -103,7 +103,8 @@ class Indexer:
             string = f"{key} {' '.join(index[key])}"
             data.append(string)
 
-        filename = sys.argv[2] + '/index' + str(fieldindicator)+ str(fileCount) + '.txt'
+        # filename = sys.argv[2] + '/index' + str(fieldindicator)+ str(fileCount) + '.txt'
+        filename = f"{sys.argv[2]}/index{str(fieldindicator)}{str(fileCount)}.txt"
         data = '\n'.join(data)
         f = open(filename, 'w')
         f.write(data)
@@ -167,7 +168,8 @@ class Indexer:
                 curr_word = top_ele[0]
                 curr_data = topLine[new_ind]
             else:
-                curr_data += " " + " ".join(wordsTopLine[new_ind][1:])
+                # curr_data += " " + " ".join(wordsTopLine[new_ind][1:])
+                curr_data = f"{curr_data} {' '.join(wordsTopLine[new_ind][1:])}"
                 curr_word = top_ele[0]
             
             topLine[new_ind] = files[new_ind].readline().strip()
@@ -184,6 +186,7 @@ class Indexer:
         data.append(curr_data)
         count+=1
         Indexer.writeFile(pageCount, file_field, data)
+        return count
         
     @staticmethod
     def writeFile(pageCount, file_field, data):
@@ -196,9 +199,11 @@ class Indexer:
     
     @staticmethod
     def mergedata():
-        Indexer.mergeFiles('b')
-        Indexer.mergeFiles('t')
-        Indexer.mergeFiles('l')
-        Indexer.mergeFiles('r')
-        Indexer.mergeFiles('c')
-        Indexer.mergeFiles('i')
+        total_count = 0
+        total_count += Indexer.mergeFiles('b')
+        total_count += Indexer.mergeFiles('t')
+        total_count += Indexer.mergeFiles('l')
+        total_count += Indexer.mergeFiles('r')
+        total_count += Indexer.mergeFiles('c')
+        total_count += Indexer.mergeFiles('i')
+        return total_count
