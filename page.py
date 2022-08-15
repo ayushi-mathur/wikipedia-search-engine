@@ -17,7 +17,7 @@ class Page():
         return data
 
     def isValid(self, ele):
-        return ele not in Page.stopWords and ele.isalpha() and ( 3 < len(ele) < 15 )
+        return ele not in Page.stopWords and ele.isalpha() and len(ele)>3 and len(ele)<15
     
     def getStemmedTokens(self, data):
         data = data.encode("ascii", errors="ignore").decode()

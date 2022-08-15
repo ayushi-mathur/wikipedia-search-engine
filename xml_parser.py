@@ -31,9 +31,9 @@ class HandlePages(xml.sax.ContentHandler):
     
     def characters(self, content):
         if self.currTag == 'title':
-            self.title = " ".join([self.title, content])
+            self.title = f"{self.title}{content}"
         elif self.currTag == 'text':
-            self.text = " ".join([self.text, content])
+            self.text = f"{self.text}{content}"
         elif self.currTag == 'id' and self.pageId == '':
             self.pageId = content
     

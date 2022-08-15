@@ -98,19 +98,16 @@ class Indexer:
     @staticmethod
     def writePagesIntoTempIndexFile(fieldindicator, index, fileCount):
 
-        data = []
+        data = list()
         for key in sorted(index.keys()):
-            string = f"{key} "
-            postings = index[key]
-            string += ' '.join(postings)
+            string = f"{key} {' '.join(index[key])}"
             data.append(string)
 
         filename = sys.argv[2] + '/index' + str(fieldindicator)+ str(fileCount) + '.txt'
         data = '\n'.join(data)
-        with open(filename, 'w') as f:
-            f.write(data)
-
-        return
+        f = open(filename, 'w')
+        f.write(data)
+        f.close()
     
     @staticmethod
     def writePages():
@@ -132,7 +129,6 @@ class Indexer:
         
     def mergeFiles(file_field):
         pq = []
-        uniqueWords = defaultdict(list)
         wordsTopLine = {}
         files = {}
         topLine = {}
@@ -187,14 +183,11 @@ class Indexer:
         
         data.append(curr_data)
         count+=1
-        # print(f"{curr_word} => {curr_data}")
         Indexer.writeFile(pageCount, file_field, data)
         
     @staticmethod
     def writeFile(pageCount, file_field, data):
         fil = "".join([sys.argv[2], '/index_', file_field + str(pageCount) + '.txt'])
-        if  data=="" or data==" ":
-            return pageCount
         fil = open(fil, "w")
         data = "\n".join(data)
         fil.write(data)
