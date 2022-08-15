@@ -148,6 +148,7 @@ class Indexer:
         
         top_ele = ""
         count = 1
+        net_count = 0
         curr_word = ""
         curr_data = ""
         data = []
@@ -167,6 +168,7 @@ class Indexer:
                 count+=1
                 curr_word = top_ele[0]
                 curr_data = topLine[new_ind]
+                net_count += 1
             else:
                 # curr_data += " " + " ".join(wordsTopLine[new_ind][1:])
                 curr_data = f"{curr_data} {' '.join(wordsTopLine[new_ind][1:])}"
@@ -186,7 +188,7 @@ class Indexer:
         data.append(curr_data)
         count+=1
         Indexer.writeFile(pageCount, file_field, data)
-        return count
+        return net_count
         
     @staticmethod
     def writeFile(pageCount, file_field, data):
