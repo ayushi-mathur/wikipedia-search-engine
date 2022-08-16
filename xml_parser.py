@@ -40,8 +40,8 @@ class HandlePages(xml.sax.ContentHandler):
 class Parser():
     
     def __init__(self, file) -> None:
-        self.parser = xml.sax.make_parser()
-        self.parser.setFeature(xml.sax.handler.feature_namespaces, 0)
-        self.handler = HandlePages()
-        self.parser.setContentHandler(self.handler)
-        self.parser.parse(file)
+        parser = xml.sax.make_parser()
+        parser.setFeature(xml.sax.handler.feature_namespaces, 0)
+        handler = HandlePages()
+        parser.setContentHandler(handler)
+        parser.parse(file)
