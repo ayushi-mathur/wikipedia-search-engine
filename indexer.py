@@ -38,7 +38,6 @@ class Indexer:
             s=['0']
         return ''.join(reversed(s))
 
-    # Decodes a base 64 coding to a positive integer
 
     def buildIndex(self):
         Id = Indexer.encode_number(Indexer.pageCount)
