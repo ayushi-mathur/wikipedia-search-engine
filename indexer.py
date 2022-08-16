@@ -3,14 +3,14 @@ import string
 import sys
 import heapq
 import os
-NUMPAGES_IN_PREINDEX = 15000
+PREINDEX_PAGE_COUNT = 15000
 VOCAB_PER_FILE = 50000
 TITLE_PER_FILE = 50000
 DICT_SIZE = 30000
 
 class Indexer:
     indDictT, indDictB, indDictL, indDictR, indDictC, indDictI = defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list)
-    fileCount, pageCount = 0, 0
+    file_cnt, pageCount = 0, 0
     titleIdMap = []
     articleFileCount = 0
 
@@ -138,7 +138,7 @@ class Indexer:
         
         Indexer.pageCount += 1
         
-        if Indexer.pageCount%NUMPAGES_IN_PREINDEX == 0:
+        if Indexer.pageCount%PREINDEX_PAGE_COUNT == 0:
             Indexer.writePages()
         if Indexer.pageCount%TITLE_PER_FILE == 0 and Indexer.pageCount>0:
             Indexer.writeTitleFile()
@@ -155,28 +155,28 @@ class Indexer:
         Indexer.articleFileCount+=1
 
     @staticmethod
-    def writePagesToTmpInd(fieldindicator, index, fileCount):
+    def writePagesToTmpInd(fieldindicator, index, file_cnt):
 
         data = list()
         for key in sorted(index.keys()):
             string = f"{key} {' '.join(index[key])}"
             data.append(string)
 
-        # filename = sys.argv[2] + '/index' + str(fieldindicator)+ str(fileCount) + '.txt'
-        filename = f"{sys.argv[2]}/index{str(fieldindicator)}{str(fileCount)}.txt"
+        # filename = sys.argv[2] + '/index' + str(fieldindicator)+ str(file_cnt) + '.txt'
+        fil = f"{sys.argv[2]}/index{str(fieldindicator)}{str(file_cnt)}.txt"
         data = '\n'.join(data)
-        f = open(filename, 'w')
+        f = open(fil, 'w')
         f.write(data)
         f.close()
     
     @staticmethod
     def writePages():
-        Indexer.writePagesToTmpInd('t', Indexer.indDictT, Indexer.fileCount)
-        Indexer.writePagesToTmpInd('i', Indexer.indDictI, Indexer.fileCount)
-        Indexer.writePagesToTmpInd('b', Indexer.indDictB, Indexer.fileCount)
-        Indexer.writePagesToTmpInd('l', Indexer.indDictL, Indexer.fileCount)
-        Indexer.writePagesToTmpInd('c', Indexer.indDictC, Indexer.fileCount)
-        Indexer.writePagesToTmpInd('r', Indexer.indDictR, Indexer.fileCount)
+        Indexer.writePagesToTmpInd('t', Indexer.indDictT, Indexer.file_cnt)
+        Indexer.writePagesToTmpInd('i', Indexer.indDictI, Indexer.file_cnt)
+        Indexer.writePagesToTmpInd('b', Indexer.indDictB, Indexer.file_cnt)
+        Indexer.writePagesToTmpInd('l', Indexer.indDictL, Indexer.file_cnt)
+        Indexer.writePagesToTmpInd('c', Indexer.indDictC, Indexer.file_cnt)
+        Indexer.writePagesToTmpInd('r', Indexer.indDictR, Indexer.file_cnt)
 
         Indexer.indDictR = defaultdict(list)
         Indexer.indDictI = defaultdict(list)
@@ -185,27 +185,26 @@ class Indexer:
         Indexer.indDictT = defaultdict(list)
         Indexer.indDictC = defaultdict(list)
 
-        Indexer.fileCount += 1
+        Indexer.file_cnt += 1
         
     def mergeIndexFiles(file_field):
         pq = []
-        wordsTopLine = {}
-        files = {}
-        topLine = {}
-        pageCount = 0
+        wordsFirstLine = {}
+        files_arr = {}
+        FirstLine = {}
+        page_cnt = 0
         
         vocabfiledata = []
         
-        # print(Indexer.fileCount)
-        finalFileCount = 0
-        for ind in range(Indexer.fileCount):
-            file_name = "".join([sys.argv[2], '/index', file_field + str(ind) + '.txt'])
-            files[ind] = open(file_name, 'r')
-            topLine[ind]=files[ind].readline().strip()
-            if topLine[ind] == '':
+        # print(Indexer.file_cnt)
+        for ind in range(Indexer.file_cnt):
+            fil = "".join([sys.argv[2], '/index', file_field + str(ind) + '.txt'])
+            files_arr[ind] = open(fil, 'r')
+            FirstLine[ind]=files_arr[ind].readline().strip()
+            if FirstLine[ind] == '':
                 continue
-            wordsTopLine[ind] = topLine[ind].split()
-            tup = (wordsTopLine[ind][0], ind)
+            wordsFirstLine[ind] = FirstLine[ind].split()
+            tup = (wordsFirstLine[ind][0], ind)
             heapq.heappush(pq, tup)
         
         top_ele = ""
@@ -221,7 +220,7 @@ class Indexer:
             new_ind = top_ele[1]
             
             if count%VOCAB_PER_FILE == 0:
-                pageCount = Indexer.writeFile(pageCount, file_field, data)
+                page_cnt = Indexer.writeFile(page_cnt, file_field, data)
                 data = []
                 count=1
             
@@ -229,32 +228,32 @@ class Indexer:
                 
                 data.append(curr_data)
                 count+=1
-                vocabfiledata.append(f"{curr_word} {curr_freq}-{pageCount}")
+                vocabfiledata.append(f"{curr_word} {curr_freq}-{page_cnt}")
                 curr_word = top_ele[0]
-                curr_data = topLine[new_ind]
+                curr_data = FirstLine[new_ind]
                 net_count += 1
                 curr_freq = 1
             else:
                 # curr_data += " " + " ".join(wordsTopLine[new_ind][1:])
-                curr_data = f"{curr_data} {' '.join(wordsTopLine[new_ind][1:])}"
+                curr_data = f"{curr_data} {' '.join(wordsFirstLine[new_ind][1:])}"
                 curr_word = top_ele[0]
                 curr_freq+=1
             
-            topLine[new_ind] = files[new_ind].readline().strip()
-            if topLine[new_ind]!='':
-                wordsTopLine[new_ind] = topLine[new_ind].split()
-                tup = (wordsTopLine[new_ind][0], new_ind)
+            FirstLine[new_ind] = files_arr[new_ind].readline().strip()
+            if FirstLine[new_ind]!='':
+                wordsFirstLine[new_ind] = FirstLine[new_ind].split()
+                tup = (wordsFirstLine[new_ind][0], new_ind)
                 heapq.heappush(pq, tup)
             else:
-                files[new_ind].close()
-                wordsTopLine[new_ind] = []
-                file_name = "".join([sys.argv[2], '/index', file_field + str(new_ind) + '.txt'])
-                os.remove(file_name)
+                files_arr[new_ind].close()
+                wordsFirstLine[new_ind] = []
+                fil = "".join([sys.argv[2], '/index', file_field + str(new_ind) + '.txt'])
+                os.remove(fil)
         
         data.append(curr_data)
         count+=1
-        vocabfiledata.append(f"{curr_word} {curr_freq}-{pageCount}")
-        Indexer.writeFile(pageCount, file_field, data)
+        vocabfiledata.append(f"{curr_word} {curr_freq}-{page_cnt}")
+        Indexer.writeFile(page_cnt, file_field, data)
         
         with open(sys.argv[2] + "/vocab" + file_field+".txt", "a") as f:
             vocabfiledata = "\n".join(vocabfiledata)
@@ -262,27 +261,27 @@ class Indexer:
         return net_count
     
     @staticmethod
-    def mergeVocab():
+    def mergeVocabulary():
         pq = []
-        wordsTopLine = {}
+        wordsFirstLine = {}
         files = {}
-        topLine = {}
-        pageCount = 0
+        firstLine = {}
+        page_cnt = 0
         count = 1
         
         vocabfiledata = []
-        fileCount = 6
+        file_cnt = 6
         FIELDS = ['b', 't', 'c', 'i', 'r', 'l']
         
-        # print(Indexer.fileCount)
+        # print(Indexer.file_cnt)
         finalFileCount = 0
-        for ind in range(fileCount):
-            file_name = "".join([sys.argv[2], '/vocab', FIELDS[ind] + '.txt'])
-            files[ind] = open(file_name, 'r')
-            topLine[ind]=files[ind].readline().strip()
-            if topLine[ind] != '':
-                wordsTopLine[ind] = topLine[ind].split()
-                tup = (wordsTopLine[ind][0], ind)
+        for ind in range(file_cnt):
+            fil = "".join([sys.argv[2], '/vocab', FIELDS[ind] + '.txt'])
+            files[ind] = open(fil, 'r')
+            firstLine[ind]=files[ind].readline().strip()
+            if firstLine[ind] != '':
+                wordsFirstLine[ind] = firstLine[ind].split()
+                tup = (wordsFirstLine[ind][0], ind)
                 heapq.heappush(pq, tup)
         
         top_ele = ""
@@ -296,7 +295,7 @@ class Indexer:
             new_ind = top_ele[1]
             
             if count%DICT_SIZE == 0:
-                pageCount = Indexer.writeVocabFile(pageCount, data)
+                page_cnt = Indexer.writeVocabFile(page_cnt, data)
                 data = []
                 count=1
 
@@ -304,29 +303,29 @@ class Indexer:
                 
                 data.append(curr_data)
                 curr_word = top_ele[0]
-                curr_data = f"{curr_word} {FIELDS[new_ind]}-{wordsTopLine[new_ind][1]}"
+                curr_data = f"{curr_word} {FIELDS[new_ind]}-{wordsFirstLine[new_ind][1]}"
                 curr_freq = 0
                 count+=1
             else:
                 # curr_data += " " + " ".join(wordsTopLine[new_ind][1:])
                 # curr_data = f"{curr_data} {' '.join(wordsTopLine[new_ind][1:])}"
-                curr_data = f"{curr_data} {FIELDS[new_ind]}-{wordsTopLine[new_ind][1]}"
+                curr_data = f"{curr_data} {FIELDS[new_ind]}-{wordsFirstLine[new_ind][1]}"
                 curr_word = top_ele[0]
                 curr_freq+=1
             
-            topLine[new_ind] = files[new_ind].readline().strip()
-            if topLine[new_ind]!='':
-                wordsTopLine[new_ind] = topLine[new_ind].split()
-                tup = (wordsTopLine[new_ind][0], new_ind)
+            firstLine[new_ind] = files[new_ind].readline().strip()
+            if firstLine[new_ind]!='':
+                wordsFirstLine[new_ind] = firstLine[new_ind].split()
+                tup = (wordsFirstLine[new_ind][0], new_ind)
                 heapq.heappush(pq, tup)
             else:
                 files[new_ind].close()
-                wordsTopLine[new_ind] = []
-                file_name = "".join([sys.argv[2], '/vocab', FIELDS[new_ind] + '.txt'])
-                os.remove(file_name)
+                wordsFirstLine[new_ind] = []
+                fil = "".join([sys.argv[2], '/vocab', FIELDS[new_ind] + '.txt'])
+                os.remove(fil)
         
         data.append(curr_data)
-        Indexer.writeVocabFile(pageCount, data)
+        Indexer.writeVocabFile(page_cnt, data)
         # with open(sys.argv[2] + "/vocab.txt", "a") as f:
         #     vocabfiledata = "\n".join(data)
         #     f.write(vocabfiledata)
@@ -358,5 +357,5 @@ class Indexer:
         total_count += Indexer.mergeIndexFiles('r')
         total_count += Indexer.mergeIndexFiles('c')
         total_count += Indexer.mergeIndexFiles('i')
-        Indexer.mergeVocab()
+        Indexer.mergeVocabulary()
         return total_count

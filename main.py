@@ -17,7 +17,7 @@ if __name__ == "__main__":
     ind.writeTitleFile()
     
     finalToken = ind.mergedata()
-    initialToken = len(Page.uniqueTokens)
+    initialToken = len(Page.uniqueWords)
     
     stat_file = open(sys.argv[3], "w")
     stat_file.write(f"{str(initialToken)}\n")
