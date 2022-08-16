@@ -23,7 +23,7 @@ class HandlePages(xml.sax.ContentHandler):
                 pag = Page()
                 title, infobox, body, categories, links, references = pag.processCorpus(self.text, self.title)
                 i = Indexer(title, body, infobox, categories, links, references, self.title.strip())
-                i.createIndex()
+                i.buildIndex()
             self.pageId = 0
             self.currTag = ''
             self.title = ''

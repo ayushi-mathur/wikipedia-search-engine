@@ -1,48 +1,47 @@
-from collections import defaultdict, Counter
+from collections import defaultdict
 import string
 import sys
 import heapq
 import os
-from pprint import pprint
 NUMPAGES_IN_PREINDEX = 15000
 VOCAB_PER_FILE = 50000
 TITLE_PER_FILE = 50000
 DICT_SIZE = 30000
 
 class Indexer:
-    indexMapT, indexMapB, indexMapL, indexMapR, indexMapC, indexMapI = defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list)
+    indDictT, indDictB, indDictL, indDictR, indDictC, indDictI = defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list)
     fileCount, pageCount = 0, 0
     titleIdMap = []
     articleFileCount = 0
 
-    ALPHABET = "".join([string.digits, string.ascii_lowercase, string.ascii_uppercase, '+_'])
-    BASE = len(ALPHABET)
-    ALPHABET_REVERSE = dict((c, i) for (i, c) in enumerate(ALPHABET))
+    ENCODING = "".join([string.digits, string.ascii_lowercase, string.ascii_uppercase, '+!'])
+    BASE = len(ENCODING)
+    ENCODING_REVERSE = dict((c, i) for (i, c) in enumerate(ENCODING))
     
     def __init__(self, title=[], body=[], info=[], categories=[], links=[], references=[], og_title="") -> None:
         self.title, self.body, self.info, self.categories, self.links, self.references, self.og_title = title, body, info, categories, links, references, og_title
     
     @staticmethod
-    def num_decode(s):
+    def decode_number(s):
         n = 0
         for c in s:
-            n = n * Indexer.BASE + Indexer.ALPHABET_REVERSE[c]
+            n = n * Indexer.BASE + Indexer.ENCODING_REVERSE[c]
         return n
 
     @staticmethod
-    def num_encode(n):
+    def encode_number(n):
         s = []
         while n:
             n, r = divmod(n, Indexer.BASE)
-            s.append(Indexer.ALPHABET[r])
+            s.append(Indexer.ENCODING[r])
         if s==[]:
             s=['0']
         return ''.join(reversed(s))
 
     # Decodes a base 64 coding to a positive integer
 
-    def createIndex(self):
-        Id = Indexer.num_encode(Indexer.pageCount)
+    def buildIndex(self):
+        Id = Indexer.encode_number(Indexer.pageCount)
         Indexer.titleIdMap.append(f"{Id} {self.og_title}")
         freq_dict = {}
         common_freq_dict = {}
@@ -126,17 +125,17 @@ class Indexer:
         
         for word in common_freq_dict.keys():
             if word in title:
-                Indexer.indexMapT[word].append(f"{Id}:{title[word]}")
+                Indexer.indDictT[word].append(f"{Id}:{title[word]}")
             if word in references:
-                Indexer.indexMapR[word].append(f"{Id}:{references[word]}")
+                Indexer.indDictR[word].append(f"{Id}:{references[word]}")
             if word in info:
-                Indexer.indexMapI[word].append(f"{Id}:{info[word]}")
+                Indexer.indDictI[word].append(f"{Id}:{info[word]}")
             if word in body:
-                Indexer.indexMapB[word].append(f"{Id}:{body[word]}")
+                Indexer.indDictB[word].append(f"{Id}:{body[word]}")
             if word in categories:
-                Indexer.indexMapC[word].append(f"{Id}:{categories[word]}")
+                Indexer.indDictC[word].append(f"{Id}:{categories[word]}")
             if word in links:
-                Indexer.indexMapL[word].append(f"{Id}:{links[word]}")
+                Indexer.indDictL[word].append(f"{Id}:{links[word]}")
         
         Indexer.pageCount += 1
         
@@ -157,7 +156,7 @@ class Indexer:
         Indexer.articleFileCount+=1
 
     @staticmethod
-    def writePagesIntoTempIndexFile(fieldindicator, index, fileCount):
+    def writePagesToTmpInd(fieldindicator, index, fileCount):
 
         data = list()
         for key in sorted(index.keys()):
@@ -173,23 +172,23 @@ class Indexer:
     
     @staticmethod
     def writePages():
-        Indexer.writePagesIntoTempIndexFile('t', Indexer.indexMapT, Indexer.fileCount)
-        Indexer.writePagesIntoTempIndexFile('i', Indexer.indexMapI, Indexer.fileCount)
-        Indexer.writePagesIntoTempIndexFile('b', Indexer.indexMapB, Indexer.fileCount)
-        Indexer.writePagesIntoTempIndexFile('l', Indexer.indexMapL, Indexer.fileCount)
-        Indexer.writePagesIntoTempIndexFile('c', Indexer.indexMapC, Indexer.fileCount)
-        Indexer.writePagesIntoTempIndexFile('r', Indexer.indexMapR, Indexer.fileCount)
+        Indexer.writePagesToTmpInd('t', Indexer.indDictT, Indexer.fileCount)
+        Indexer.writePagesToTmpInd('i', Indexer.indDictI, Indexer.fileCount)
+        Indexer.writePagesToTmpInd('b', Indexer.indDictB, Indexer.fileCount)
+        Indexer.writePagesToTmpInd('l', Indexer.indDictL, Indexer.fileCount)
+        Indexer.writePagesToTmpInd('c', Indexer.indDictC, Indexer.fileCount)
+        Indexer.writePagesToTmpInd('r', Indexer.indDictR, Indexer.fileCount)
 
-        Indexer.indexMapR = defaultdict(list)
-        Indexer.indexMapI = defaultdict(list)
-        Indexer.indexMapB = defaultdict(list)
-        Indexer.indexMapL = defaultdict(list)
-        Indexer.indexMapT = defaultdict(list)
-        Indexer.indexMapC = defaultdict(list)
+        Indexer.indDictR = defaultdict(list)
+        Indexer.indDictI = defaultdict(list)
+        Indexer.indDictB = defaultdict(list)
+        Indexer.indDictL = defaultdict(list)
+        Indexer.indDictT = defaultdict(list)
+        Indexer.indDictC = defaultdict(list)
 
         Indexer.fileCount += 1
         
-    def mergeFiles(file_field):
+    def mergeIndexFiles(file_field):
         pq = []
         wordsTopLine = {}
         files = {}
@@ -354,11 +353,11 @@ class Indexer:
     @staticmethod
     def mergedata():
         total_count = 0
-        total_count += Indexer.mergeFiles('b')
-        total_count += Indexer.mergeFiles('t')
-        total_count += Indexer.mergeFiles('l')
-        total_count += Indexer.mergeFiles('r')
-        total_count += Indexer.mergeFiles('c')
-        total_count += Indexer.mergeFiles('i')
+        total_count += Indexer.mergeIndexFiles('b')
+        total_count += Indexer.mergeIndexFiles('t')
+        total_count += Indexer.mergeIndexFiles('l')
+        total_count += Indexer.mergeIndexFiles('r')
+        total_count += Indexer.mergeIndexFiles('c')
+        total_count += Indexer.mergeIndexFiles('i')
         Indexer.mergeVocab()
         return total_count
