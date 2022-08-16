@@ -254,7 +254,7 @@ class Indexer:
         
         data.append(curr_data)
         count+=1
-        vocabfiledata.append(f"{curr_word} {curr_freq} {pageCount}")
+        vocabfiledata.append(f"{curr_word} {curr_freq}-{pageCount}")
         Indexer.writeFile(pageCount, file_field, data)
         
         with open(sys.argv[2] + "/vocab" + file_field+".txt", "a") as f:
