@@ -6,16 +6,20 @@ import os
 from pprint import pprint
 NUMPAGES_IN_PREINDEX = 15000
 VOCAB_PER_FILE = 50000
+TITLE_PER_FILE = 50000
 
 class Indexer:
     indexMapT, indexMapB, indexMapL, indexMapR, indexMapC, indexMapI = defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list)
     fileCount, pageCount = 0, 0
+    titleIdMap = []
+    articleFileCount = 0
+
     ALPHABET = "".join([string.digits, string.ascii_lowercase, string.ascii_uppercase, '+_'])
     BASE = len(ALPHABET)
     ALPHABET_REVERSE = dict((c, i) for (i, c) in enumerate(ALPHABET))
     
-    def __init__(self, title=[], body=[], info=[], categories=[], links=[], references=[]) -> None:
-        self.title, self.body, self.info, self.categories, self.links, self.references = title, body, info, categories, links, references 
+    def __init__(self, title=[], body=[], info=[], categories=[], links=[], references=[], og_title="") -> None:
+        self.title, self.body, self.info, self.categories, self.links, self.references, self.og_title = title, body, info, categories, links, references, og_title
     
     @staticmethod
     def num_decode(s):
@@ -30,12 +34,15 @@ class Indexer:
         while n:
             n, r = divmod(n, Indexer.BASE)
             s.append(Indexer.ALPHABET[r])
+        if s==[]:
+            s=['0']
         return ''.join(reversed(s))
 
     # Decodes a base 64 coding to a positive integer
 
     def createIndex(self):
         Id = Indexer.num_encode(Indexer.pageCount)
+        Indexer.titleIdMap.append(f"{Id} {self.og_title}")
         freq_dict = {}
         common_freq_dict = {}
         
@@ -134,8 +141,20 @@ class Indexer:
         
         if Indexer.pageCount%NUMPAGES_IN_PREINDEX == 0:
             Indexer.writePages()
+        if Indexer.pageCount%TITLE_PER_FILE == 0 and Indexer.pageCount>0:
+            Indexer.writeTitleFile()
             
-    
+    @staticmethod
+    def writeTitleFile():
+        if len(Indexer.titleIdMap)==0:
+            return
+        data = "\n".join(Indexer.titleIdMap)
+        filename = f"{sys.argv[2]}/title{str(Indexer.articleFileCount)}.txt"
+        with open(filename, "w") as f:
+            f.write(data)
+        Indexer.titleIdMap = []
+        Indexer.articleFileCount+=1
+
     @staticmethod
     def writePagesIntoTempIndexFile(fieldindicator, index, fileCount):
 

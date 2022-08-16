@@ -11,6 +11,7 @@ if __name__ == "__main__":
     parser = Parser(sys.argv[1])
     ind = Indexer()
     ind.writePages()
+    ind.writeTitleFile()
     
     finalToken = ind.mergedata()
     initialToken = len(Page.uniqueTokens)
