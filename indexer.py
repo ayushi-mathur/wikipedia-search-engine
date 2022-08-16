@@ -172,7 +172,7 @@ class Indexer:
                 curr_word = top_ele[0]
                 curr_data = topLine[new_ind]
                 net_count += 1
-                curr_freq = 0
+                curr_freq = 1
             else:
                 # curr_data += " " + " ".join(wordsTopLine[new_ind][1:])
                 curr_data = f"{curr_data} {' '.join(wordsTopLine[new_ind][1:])}"
@@ -214,7 +214,7 @@ class Indexer:
         
         # print(Indexer.fileCount)
         finalFileCount = 0
-        for ind in range(Indexer.fileCount):
+        for ind in range(fileCount):
             file_name = "".join([sys.argv[2], '/vocab', FIELDS[ind] + '.txt'])
             files[ind] = open(file_name, 'r')
             topLine[ind]=files[ind].readline().strip()
@@ -236,15 +236,13 @@ class Indexer:
             if curr_word!=top_ele[0] and curr_word!="":
                 
                 data.append(curr_data)
-                count+=1
-                vocabfiledata.append(f"{curr_word} {curr_freq} {pageCount}")
                 curr_word = top_ele[0]
-                curr_data = f"{FIELDS[new_ind]}"topLine[new_ind]
-                net_count += 1
+                curr_data = f"{curr_word} {FIELDS[new_ind]}-{wordsTopLine[new_ind][1]}"
                 curr_freq = 0
             else:
                 # curr_data += " " + " ".join(wordsTopLine[new_ind][1:])
-                curr_data = f"{curr_data} {' '.join(wordsTopLine[new_ind][1:])}"
+                # curr_data = f"{curr_data} {' '.join(wordsTopLine[new_ind][1:])}"
+                curr_data = f"{curr_data} {FIELDS[new_ind]}-{wordsTopLine[new_ind][1]}"
                 curr_word = top_ele[0]
                 curr_freq+=1
             
@@ -256,18 +254,14 @@ class Indexer:
             else:
                 files[new_ind].close()
                 wordsTopLine[new_ind] = []
-                file_name = "".join([sys.argv[2], '/index', file_field + str(new_ind) + '.txt'])
+                file_name = "".join([sys.argv[2], '/vocab', FIELDS[new_ind] + '.txt'])
                 os.remove(file_name)
         
         data.append(curr_data)
-        count+=1
-        vocabfiledata.append(f"{curr_word} {curr_freq} {pageCount}")
-        Indexer.writeFile(pageCount, file_field, data)
         
-        with open(sys.argv[2] + "/vocab" + file_field+".txt", "a") as f:
-            vocabfiledata = "\n".join(vocabfiledata)
+        with open(sys.argv[2] + "/vocab.txt", "a") as f:
+            vocabfiledata = "\n".join(data)
             f.write(vocabfiledata)
-        return net_count
     
     @staticmethod
     def writeFile(pageCount, file_field, data):
