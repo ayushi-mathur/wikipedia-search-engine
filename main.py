@@ -9,8 +9,8 @@ if __name__ == "__main__":
     # import pstats
     
     # with cProfile.Profile() as profile:
-    if not os.path.exists(sys.argv[1]):
-        os.makedirs(sys.argv[1])
+    if not os.path.exists(sys.argv[2]):
+        os.makedirs(sys.argv[2])
     parser = Parser(sys.argv[1])
     ind = Indexer()
     ind.writePages()
