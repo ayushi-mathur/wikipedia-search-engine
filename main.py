@@ -2,12 +2,15 @@ from xml_parser import Parser
 import sys
 from indexer import Indexer
 from page import Page
+import os
 
 if __name__ == "__main__":
     # import cProfile
     # import pstats
     
     # with cProfile.Profile() as profile:
+    if not os.path.exists(sys.argv[1]):
+        os.makedirs(sys.argv[1])
     parser = Parser(sys.argv[1])
     ind = Indexer()
     ind.writePages()
