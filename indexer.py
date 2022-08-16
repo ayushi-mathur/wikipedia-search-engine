@@ -17,7 +17,13 @@ class Indexer:
     def __init__(self, title=[], body=[], info=[], categories=[], links=[], references=[]) -> None:
         self.title, self.body, self.info, self.categories, self.links, self.references = title, body, info, categories, links, references 
     
-    # Encodes a positive integer to base 64 coding
+    @staticmethod
+    def num_decode(s):
+        n = 0
+        for c in s:
+            n = n * Indexer.BASE + Indexer.ALPHABET_REVERSE[c]
+        return n
+
     @staticmethod
     def num_encode(n):
         s = []
@@ -27,12 +33,6 @@ class Indexer:
         return ''.join(reversed(s))
 
     # Decodes a base 64 coding to a positive integer
-    @staticmethod
-    def num_decode(s):
-        n = 0
-        for c in s:
-            n = n * Indexer.BASE + Indexer.ALPHABET_REVERSE[c]
-        return n
 
     def createIndex(self):
         Id = Indexer.num_encode(Indexer.pageCount)

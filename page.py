@@ -94,8 +94,8 @@ class Page():
     
     def getExternalLinks(self, text):
         data = text.split("==external links==")
-        if(len(data)==1):
-            return []
-        data = data[1]
-        external_links = self.getStemmedTokens(data)
-        return external_links
+        if len(data)>1:
+            data = data[1]
+            external_links = self.getStemmedTokens(data)
+            return external_links
+        return []
