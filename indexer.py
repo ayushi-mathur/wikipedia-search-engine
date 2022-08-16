@@ -7,6 +7,7 @@ from pprint import pprint
 NUMPAGES_IN_PREINDEX = 15000
 VOCAB_PER_FILE = 50000
 TITLE_PER_FILE = 50000
+DICT_SIZE = 30000
 
 class Indexer:
     indexMapT, indexMapB, indexMapL, indexMapR, indexMapC, indexMapI = defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list)
@@ -269,6 +270,7 @@ class Indexer:
         files = {}
         topLine = {}
         pageCount = 0
+        count = 1
         
         vocabfiledata = []
         fileCount = 6
@@ -295,12 +297,18 @@ class Indexer:
             top_ele = heapq.heappop(pq)
             new_ind = top_ele[1]
             
+            if count%DICT_SIZE == 0:
+                pageCount = Indexer.writeVocabFile(pageCount, data)
+                data = []
+                count=1
+
             if curr_word!=top_ele[0] and curr_word!="":
                 
                 data.append(curr_data)
                 curr_word = top_ele[0]
                 curr_data = f"{curr_word} {FIELDS[new_ind]}-{wordsTopLine[new_ind][1]}"
                 curr_freq = 0
+                count+=1
             else:
                 # curr_data += " " + " ".join(wordsTopLine[new_ind][1:])
                 # curr_data = f"{curr_data} {' '.join(wordsTopLine[new_ind][1:])}"
@@ -320,14 +328,23 @@ class Indexer:
                 os.remove(file_name)
         
         data.append(curr_data)
-        
-        with open(sys.argv[2] + "/vocab.txt", "a") as f:
-            vocabfiledata = "\n".join(data)
-            f.write(vocabfiledata)
+        Indexer.writeVocabFile(pageCount, data)
+        # with open(sys.argv[2] + "/vocab.txt", "a") as f:
+        #     vocabfiledata = "\n".join(data)
+        #     f.write(vocabfiledata)
     
     @staticmethod
     def writeFile(pageCount, file_field, data):
         fil = "".join([sys.argv[2], '/index_', file_field + str(pageCount) + '.txt'])
+        fil = open(fil, "w")
+        data = "\n".join(data)
+        fil.write(data)
+        fil.close()
+        return pageCount+1
+    
+    @staticmethod
+    def writeVocabFile(pageCount, data):
+        fil = "".join([sys.argv[2], '/vocab_', str(pageCount) + '.txt'])
         fil = open(fil, "w")
         data = "\n".join(data)
         fil.write(data)
