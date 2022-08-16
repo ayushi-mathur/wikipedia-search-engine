@@ -36,42 +36,84 @@ class Indexer:
 
     def createIndex(self):
         Id = Indexer.num_encode(Indexer.pageCount)
-        freq_dict = defaultdict(int)
-        common_freq_dict = defaultdict(int)
+        freq_dict = {}
+        common_freq_dict = {}
         
         for word in self.title:
-            freq_dict[word]+=1
-            common_freq_dict[word]+=1
+            if word in freq_dict:
+                freq_dict[word]+=1
+            else:
+                freq_dict[word]=1
+            
+            if word in common_freq_dict:
+                common_freq_dict[word]+=1
+            else:
+                common_freq_dict[word] = 1
         title = freq_dict
         
-        freq_dict = defaultdict(int)
+        freq_dict = {}
         for word in self.categories:
-            freq_dict[word]+=1
-            common_freq_dict[word]+=1
+            if word in freq_dict:
+                freq_dict[word]+=1
+            else:
+                freq_dict[word]=1
+            
+            if word in common_freq_dict:
+                common_freq_dict[word]+=1
+            else:
+                common_freq_dict[word] = 1
         categories = freq_dict
         
-        freq_dict = defaultdict(int)
+        freq_dict = {}
         for word in self.info:
-            freq_dict[word]+=1
-            common_freq_dict[word]+=1
+            if word in freq_dict:
+                freq_dict[word]+=1
+            else:
+                freq_dict[word]=1
+            
+            if word in common_freq_dict:
+                common_freq_dict[word]+=1
+            else:
+                common_freq_dict[word] = 1
         info = freq_dict
         
-        freq_dict = defaultdict(int)
+        freq_dict = {}
         for word in self.references:
-            freq_dict[word]+=1
-            common_freq_dict[word]+=1
+            if word in freq_dict:
+                freq_dict[word]+=1
+            else:
+                freq_dict[word]=1
+            
+            if word in common_freq_dict:
+                common_freq_dict[word]+=1
+            else:
+                common_freq_dict[word] = 1
         references = freq_dict
         
-        freq_dict = defaultdict(int)
+        freq_dict = {}
         for word in self.body:
-            freq_dict[word]+=1
-            common_freq_dict[word]+=1
+            if word in freq_dict:
+                freq_dict[word]+=1
+            else:
+                freq_dict[word]=1
+            
+            if word in common_freq_dict:
+                common_freq_dict[word]+=1
+            else:
+                common_freq_dict[word] = 1
         body = freq_dict
         
-        freq_dict = defaultdict(int)
+        freq_dict = {}
         for word in self.links:
-            freq_dict[word]+=1
-            common_freq_dict[word]+=1
+            if word in freq_dict:
+                freq_dict[word]+=1
+            else:
+                freq_dict[word]=1
+            
+            if word in common_freq_dict:
+                common_freq_dict[word]+=1
+            else:
+                common_freq_dict[word] = 1
         links = freq_dict
         
         for word in common_freq_dict.keys():
