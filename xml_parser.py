@@ -24,10 +24,10 @@ class HandlePages(xml.sax.ContentHandler):
                 title, infobox, body, categories, links, references = pag.processCorpus(self.text, self.title)
                 i = Indexer(title, body, infobox, categories, links, references)
                 i.createIndex()
+            self.pageId = 0
             self.currTag = ''
             self.title = ''
             self.text = ''
-            self.pageId = 0
     
     def characters(self, content):
         if self.currTag == 'title':

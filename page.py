@@ -46,8 +46,7 @@ class Page():
         
         data = text.split("==references==")
         if len(data)==1:
-            references = []
-            externalLinks = []
+            references, externalLinks = [], []
         else:
             references = self.getReferences(data[1])
             externalLinks = self.getExternalLinks(data[1])

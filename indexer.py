@@ -27,7 +27,7 @@ class Indexer:
     @staticmethod
     def num_encode(n):
         s = []
-        while n>0:
+        while n:
             n, r = divmod(n, Indexer.BASE)
             s.append(Indexer.ALPHABET[r])
         return ''.join(reversed(s))
@@ -184,10 +184,11 @@ class Indexer:
             file_name = "".join([sys.argv[2], '/index', file_field + str(ind) + '.txt'])
             files[ind] = open(file_name, 'r')
             topLine[ind]=files[ind].readline().strip()
-            if topLine[ind] != '':
-                wordsTopLine[ind] = topLine[ind].split()
-                tup = (wordsTopLine[ind][0], ind)
-                heapq.heappush(pq, tup)
+            if topLine[ind] == '':
+                continue
+            wordsTopLine[ind] = topLine[ind].split()
+            tup = (wordsTopLine[ind][0], ind)
+            heapq.heappush(pq, tup)
         
         top_ele = ""
         count = 1
