@@ -3,6 +3,7 @@ import re
 import os
 from bisect import bisect_left
 from Stemmer import Stemmer
+import pickle
 
 class fileQuery:
     def __init__(self, index_path) -> None:
@@ -36,6 +37,33 @@ class fileQuery:
         if i:
             return i-1
         return -1
+
+class DocQuery():
+    def __init__(self, field, file_no) -> None:
+        self.field = field
+        self.file_no = file_no
+        self.offsets = pickle.loads(f"{sys.argv[1]}offset_{field}{file_no}.pkl")
+        self.indexfile = open(f"{sys.argv[1]}index_{field}{file_no}.pkl")
+    
+    # Returns all documents in which that query is present
+    def fetchLine(self, query):
+        num_words = len(self.offsets)
+        
+        lower = 0
+        upper = num_words-1
+        
+        while lower<=upper:
+            mid = (lower+upper)//2
+            self.indexfile.seek(self.offsets[mid])
+            linez = self.indexfile.readline()
+            linez_tok = linez.split()
+            if linez_tok[0]==query:
+                return linez_tok
+            if linez_tok[0]<query:
+                lower = mid+1
+            else: upper = mid-1
+        
+        return []
 
 def fieldQuery(queries):
     for query in queries:
