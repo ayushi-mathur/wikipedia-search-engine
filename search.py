@@ -55,7 +55,7 @@ class DocQuery():
         while lower<=upper:
             mid = (lower+upper)//2
             self.indexfile.seek(self.offsets[mid])
-            linez = self.indexfile.readline()
+            linez = self.indexfile.readline().strip()
             linez_tok = linez.split()
             if linez_tok[0]==query:
                 return linez_tok
