@@ -216,7 +216,7 @@ class Indexer:
         data = []
         curr_freq = 0
         
-        offset = []
+        offset = [0]
         
         while pq:
             top_ele = heapq.heappop(pq)
@@ -226,12 +226,13 @@ class Indexer:
                 page_cnt = Indexer.writeFile(page_cnt, file_field, data, offset)
                 data = []
                 count=1
-                offset = []
-            
+                offset = [0]
+                
             if curr_word!=top_ele[0] and curr_word!="":
                 
                 data.append(curr_data)
-                offset.append(len(curr_data))
+                
+                offset.append(offset[-1]+len(curr_data)+1)
                 count+=1
                 vocabfiledata.append(f"{curr_word} {curr_freq}-{page_cnt}")
                 curr_word = top_ele[0]
@@ -256,7 +257,7 @@ class Indexer:
                 os.remove(fil)
         
         data.append(curr_data)
-        offset.append(len(curr_data))
+        offset.append(offset[-1]+len(curr_data)+1)
         count+=1
         vocabfiledata.append(f"{curr_word} {curr_freq}-{page_cnt}")
         Indexer.writeFile(page_cnt, file_field, data, offset)

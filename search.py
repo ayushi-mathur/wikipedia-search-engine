@@ -22,17 +22,15 @@ class fileQuery:
         
     def filedwise_heading(self, field):
         file_no = 0
-        file_path = f"{self.index_path}index_{field}{file_no}.txt"
-        print(file_path)
+        file_path = f"{self.index_path}/index_{field}{file_no}.txt"
         self.field_doc_heading[field] = []
         while(os.path.exists(file_path)):
             with open(file_path, "r") as f:
                 self.field_doc_heading[field].append(f.readline())
             file_no+=1
-            file_path = f"{self.index_path}index_{field}{file_no}.txt"
+            file_path = f"{self.index_path}/index_{field}{file_no}.txt"
     
     def processQuery(self, query, field):
-        print(self.field_doc_heading[field])
         i = bisect_left(self.field_doc_heading[field], query)
         if i:
             return i-1
@@ -42,27 +40,33 @@ class DocQuery():
     def __init__(self, field, file_no) -> None:
         self.field = field
         self.file_no = file_no
-        self.offsets = pickle.loads(f"{sys.argv[1]}offset_{field}{file_no}.pkl")
-        self.indexfile = open(f"{sys.argv[1]}index_{field}{file_no}.pkl")
+        fil = open(f"{sys.argv[1]}/offset_{field}{file_no}.pkl", "rb")
+        self.offsets = pickle.load(fil)
+        self.indexfilepath = f"{sys.argv[1]}/index_{field}{file_no}.txt"
     
     # Returns all documents in which that query is present
     def fetchLine(self, query):
         num_words = len(self.offsets)
-        
+        indexfile = open(self.indexfilepath, "r")
         lower = 0
-        upper = num_words-1
+        # -2 coz the last value indicates the final empty line, that we shouldn't search in.
+        upper = num_words-2
         
         while lower<=upper:
             mid = (lower+upper)//2
-            self.indexfile.seek(self.offsets[mid])
-            linez = self.indexfile.readline().strip()
+            print(mid)
+            print(f"upper -> {upper}")
+            indexfile.seek(self.offsets[mid])
+            linez = indexfile.readline().strip()
             linez_tok = linez.split()
             if linez_tok[0]==query:
+                indexfile.close()
                 return linez_tok
             if linez_tok[0]<query:
                 lower = mid+1
             else: upper = mid-1
         
+        indexfile.close()
         return []
 
 def fieldQuery(queries):
@@ -79,7 +83,10 @@ if __name__ == "__main__":
     while True:
         word = input()
         field = input()
-        print(a.processQuery(word, field))
+        file_no = a.processQuery(word, field)
+        dquery = DocQuery(field, file_no)
+        doclist = dquery.fetchLine(word)
+        print(doclist)
         print("----------------")
     query_file = open(sys.argv[2], 'r')
     for query in query_file.readlines():
