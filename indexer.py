@@ -3,6 +3,7 @@ import string
 import sys
 import heapq
 import os
+import pickle as pkl
 PREINDEX_PAGE_COUNT = 15000
 VOCAB_PER_FILE = 50000
 TITLE_PER_FILE = 50000
@@ -215,18 +216,22 @@ class Indexer:
         data = []
         curr_freq = 0
         
+        offset = []
+        
         while pq:
             top_ele = heapq.heappop(pq)
             new_ind = top_ele[1]
             
             if count%VOCAB_PER_FILE == 0:
-                page_cnt = Indexer.writeFile(page_cnt, file_field, data)
+                page_cnt = Indexer.writeFile(page_cnt, file_field, data, offset)
                 data = []
                 count=1
+                offset = []
             
             if curr_word!=top_ele[0] and curr_word!="":
                 
                 data.append(curr_data)
+                offset.append(len(curr_data))
                 count+=1
                 vocabfiledata.append(f"{curr_word} {curr_freq}-{page_cnt}")
                 curr_word = top_ele[0]
@@ -251,9 +256,10 @@ class Indexer:
                 os.remove(fil)
         
         data.append(curr_data)
+        offset.append(len(curr_data))
         count+=1
         vocabfiledata.append(f"{curr_word} {curr_freq}-{page_cnt}")
-        Indexer.writeFile(page_cnt, file_field, data)
+        Indexer.writeFile(page_cnt, file_field, data, offset)
         
         with open(sys.argv[2] + "/vocab" + file_field+".txt", "a") as f:
             vocabfiledata = "\n".join(vocabfiledata)
@@ -331,12 +337,16 @@ class Indexer:
         #     f.write(vocabfiledata)
     
     @staticmethod
-    def writeFile(pageCount, file_field, data):
+    def writeFile(pageCount, file_field, data, offset):
         fil = "".join([sys.argv[2], '/index_', file_field + str(pageCount) + '.txt'])
         fil = open(fil, "w")
         data = "\n".join(data)
         fil.write(data)
         fil.close()
+        
+        pkl_file = open(f"{sys.argv[2]}/offset_{file_field}{pageCount}.pkl", "wb")
+        pkl.dump(offset, pkl_file)
+        pkl_file.close()
         return pageCount+1
     
     @staticmethod
