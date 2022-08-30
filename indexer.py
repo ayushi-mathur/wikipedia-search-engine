@@ -14,6 +14,7 @@ class Indexer:
     file_cnt, pageCount = 0, 0
     titleIdMap = []
     articleFileCount = 0
+    total_document_count = 0
 
     ENCODING = "".join([string.digits, string.ascii_lowercase, string.ascii_uppercase, '+!'])
     BASE = len(ENCODING)
@@ -42,9 +43,10 @@ class Indexer:
 
     def buildIndex(self):
         Id = Indexer.encode_number(Indexer.pageCount)
-        Indexer.titleIdMap.append(f"{Id} {self.og_title}")
+        Indexer.titleIdMap.append(f"{Id} {len(self.title)} {len(self.body)} {len(self.info)} {len(self.body)} {len(self.references)} {len(self.links)} {self.og_title}")
         freq_dict = {}
         common_freq_dict = {}
+        Indexer.total_document_count += 1
         
         for word in self.title:
             if word in freq_dict:

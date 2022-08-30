@@ -80,14 +80,14 @@ def fieldQuery(queries):
 if __name__ == "__main__":
     stemmer = Stemmer('english')
     a = fileQuery(sys.argv[1])
-    while True:
-        word = input()
-        field = input()
-        file_no = a.processQuery(word, field)
-        dquery = DocQuery(field, file_no)
-        doclist = dquery.fetchLine(word)
-        print(doclist)
-        print("----------------")
+    # while True:
+    #     word = input()
+    #     field = input()
+    #     file_no = a.processQuery(word, field)
+    #     dquery = DocQuery(field, file_no)
+    #     doclist = dquery.fetchLine(word)
+    #     print(doclist)
+    #     print("----------------")
     query_file = open(sys.argv[2], 'r')
     for query in query_file.readlines():
         query = query.lower()
