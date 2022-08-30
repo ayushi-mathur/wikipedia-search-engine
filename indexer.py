@@ -15,6 +15,8 @@ class Indexer:
     titleIdMap = []
     articleFileCount = 0
     total_document_count = 0
+    titleOffset = [0]
+    wordDocDict = {}
 
     ENCODING = "".join(['!+', string.digits, string.ascii_lowercase, string.ascii_uppercase])
     BASE = len(ENCODING)
@@ -43,7 +45,10 @@ class Indexer:
 
     def buildIndex(self):
         Id = Indexer.encode_number(Indexer.pageCount)
-        Indexer.titleIdMap.append(f"{Id} {len(self.title)} {len(self.body)} {len(self.info)} {len(self.body)} {len(self.references)} {len(self.links)} {self.og_title}")
+        title_str = f"{Id} {len(self.title)} {len(self.body)} {len(self.info)} {len(self.categories)} {len(self.references)} {len(self.links)} {self.og_title}"
+        Indexer.titleOffset.append(Indexer.titleOffset[-1]+len(title_str)+1)
+        Indexer.titleIdMap.append(title_str)
+        
         freq_dict = {}
         common_freq_dict = {}
         Indexer.total_document_count += 1
@@ -138,6 +143,9 @@ class Indexer:
                 Indexer.indDictC[word].append(f"{Id}:{categories[word]}")
             if word in links:
                 Indexer.indDictL[word].append(f"{Id}:{links[word]}")
+            if word in Indexer.wordDocDict:
+                Indexer.wordDocDict[word]+=1
+            else: Indexer.wordDocDict[word]=1
         
         Indexer.pageCount += 1
         
@@ -150,12 +158,37 @@ class Indexer:
     def writeTitleFile():
         if len(Indexer.titleIdMap)==0:
             return
+
+        filename = f"{sys.argv[2]}/title_pre_index.txt"
+        with open(filename, "a+") as f:
+            f.write(Indexer.titleIdMap[0].split()[0])
+        
         data = "\n".join(Indexer.titleIdMap)
         filename = f"{sys.argv[2]}/title{str(Indexer.articleFileCount)}.txt"
         with open(filename, "w") as f:
             f.write(data)
+        
+        data = " ".join(Indexer.titleOffset)
+        filename = f"{sys.argv[2]}/titleoffset{str(Indexer.articleFileCount)}.txt"
+        with open(filename, "w") as f:
+            f.write(data)
         Indexer.titleIdMap = []
         Indexer.articleFileCount+=1
+        Indexer.titleOffset = [0]
+    
+    @staticmethod
+    def writeTempIDF():
+        data = list()
+        for key in sorted(Indexer.wordDocDict.keys()):
+            string = f"{key} {Indexer.wordDocDict[key]}"
+            data.append(string)
+
+        # filename = sys.argv[2] + '/index' + str(fieldindicator)+ str(file_cnt) + '.txt'
+        fil = f"{sys.argv[2]}/tempidf{str(Indexer.file_cnt)}.txt"
+        data = '\n'.join(data)
+        f = open(fil, 'w')
+        f.write(data)
+        f.close()
 
     @staticmethod
     def writePagesToTmpInd(fieldindicator, index, file_cnt):
@@ -262,6 +295,79 @@ class Indexer:
         offset.append(offset[-1]+len(curr_data)+1)
         count+=1
         vocabfiledata.append(f"{curr_word} {curr_freq}-{page_cnt}")
+        Indexer.writeFile(page_cnt, file_field, data, offset)
+        
+        with open(sys.argv[2] + "/vocab" + file_field+".txt", "a") as f:
+            vocabfiledata = "\n".join(vocabfiledata)
+            f.write(vocabfiledata)
+        return net_count
+    
+    def mergeIDF():
+        pq = []
+        wordsFirstLine = {}
+        files_arr = {}
+        FirstLine = {}
+        page_cnt = 0
+        
+        vocabfiledata = []
+        
+        # print(Indexer.file_cnt)
+        for ind in range(Indexer.file_cnt):
+            
+            fil = f"{sys.argv[2]}/tempidf{str(ind)}.txt"
+            files_arr[ind] = open(fil, 'r')
+            FirstLine[ind]=files_arr[ind].readline().strip()
+            if FirstLine[ind] == '' or FirstLine[ind] == ' ':
+                continue
+            word, freq = FirstLine[ind].split()
+            tup = (word, ind)
+            heapq.heappush(pq, tup)
+        
+        top_ele = ""
+        count = 1
+        net_count = 0
+        curr_word = ""
+        curr_freq = 0
+        
+        
+        while pq:
+            top_ele = heapq.heappop(pq)
+            new_ind = top_ele[1]
+            
+            if count%VOCAB_PER_FILE == 0:
+                page_cnt = Indexer.writeIDF(page_cnt, data)
+                data = []
+                count=1
+                
+            if curr_word!=top_ele[0] and curr_word!="":
+                
+                data.append(curr_data)
+                
+                count+=1
+                vocabfiledata.append(f"{curr_word} {curr_freq}-{page_cnt}")
+                curr_word = top_ele[0]
+                curr_data = FirstLine[new_ind]
+                net_count += 1
+                curr_freq = 1
+            else:
+                # curr_data += " " + " ".join(wordsTopLine[new_ind][1:])
+                curr_data = f"{curr_data} {' '.join(wordsFirstLine[new_ind][1:])}"
+                curr_word = top_ele[0]
+                curr_freq+=1
+            
+            FirstLine[new_ind] = files_arr[new_ind].readline().strip()
+            if FirstLine[new_ind]!='':
+                wordsFirstLine[new_ind] = FirstLine[new_ind].split()
+                tup = (wordsFirstLine[new_ind][0], new_ind)
+                heapq.heappush(pq, tup)
+            else:
+                files_arr[new_ind].close()
+                wordsFirstLine[new_ind] = []
+                fil = "".join([sys.argv[2], '/index', file_field + str(new_ind) + '.txt'])
+                os.remove(fil)
+        
+        data.append(curr_data)
+        count+=1
         Indexer.writeFile(page_cnt, file_field, data, offset)
         
         with open(sys.argv[2] + "/vocab" + file_field+".txt", "a") as f:

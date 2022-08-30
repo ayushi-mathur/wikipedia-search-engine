@@ -5,6 +5,7 @@ from bisect import bisect_left
 from Stemmer import Stemmer
 import pickle
 
+
 class fileQuery:
     def __init__(self, index_path) -> None:
         self.field_doc_heading = {}
@@ -69,6 +70,57 @@ class DocQuery():
         indexfile.close()
         return []
 
+def normalizeTitles(title):
+    num_zer = 6 - len(title)
+    title = "!"*num_zer + title
+    return title
+
+class TitleFileQuery:
+    def __init__(self) -> None:
+        fil = open(f"{sys.argv[2]}/title_pre_index.txt", "r")
+        titles = fil.read().split()
+        self.title_arr = [normalizeTitles(title) for title in titles]
+            
+    
+    # Returns all documents in which that query is present
+    def processQuery(self, query):
+        i = bisect_left(self.title_arr, query)
+        if i:
+            return i-1
+        return -1
+
+class TitleQuery:
+    def __init__(self, file_no) -> None:
+        self.title_file = f"{sys.argv[2]}/title{file_no}.txt"
+        fil = open(f"{sys.argv[2]}/titleoffset{str(file_no)}.txt", "r")
+        self.offsets = fil.read().split()
+        fil.close()
+    
+    # Returns all documents in which that query is present
+    def fetchLine(self, query):
+        num_words = len(self.offsets)
+        titlefile = open(self.title_file, "r")
+        lower = 0
+        # -2 coz the last value indicates the final empty line, that we shouldn't search in.
+        upper = num_words-2
+        
+        while lower<=upper:
+            mid = (lower+upper)//2
+            print(mid)
+            print(f"upper -> {upper}")
+            titlefile.seek(self.offsets[mid])
+            linez = titlefile.readline().strip()
+            linez_tok = linez.split()
+            if linez_tok[0]==query:
+                titlefile.close()
+                return linez_tok
+            if linez_tok[0]<query:
+                lower = mid+1
+            else: upper = mid-1
+        
+        titlefile.close()
+        return []
+
 def fieldQuery(queries):
     for query in queries:
         field = query[0]
@@ -77,17 +129,35 @@ def fieldQuery(queries):
             pass
     pass
 
+def calculatescore(word, field):
+    FIELD_TO_INDEX = {"t": 1, "b": 2, "i": 3, "c": 4, "r": 5, "l": 6}
+    file_no = a.processQuery(word, field)
+    dquery = DocQuery(field, file_no)
+    doclist = dquery.fetchLine(word)
+    score_dict = {}
+    title_dict = {}
+    titlefilequery = TitleFileQuery()
+    for doc in doclist[1:]:
+        doc_id, term_freq = doc.split(":")
+        doc_file = titlefilequery.processQuery(doc_id)
+        titlequery = TitleQuery(doc_file)
+        doc_data = titlequery.fetchLine(doc_id)
+        
+        doc_data = doc_data.split(" ", 7)
+        doc_len = int(doc_data[FIELD_TO_INDEX[field]])
+
+        tf = term_freq/doc_len
+        
+        
+    print(doclist)
+
 if __name__ == "__main__":
     stemmer = Stemmer('english')
     a = fileQuery(sys.argv[1])
-    # while True:
-    #     word = input()
-    #     field = input()
-    #     file_no = a.processQuery(word, field)
-    #     dquery = DocQuery(field, file_no)
-    #     doclist = dquery.fetchLine(word)
-    #     print(doclist)
-    #     print("----------------")
+    while True:
+        word = input()
+        field = input()
+        calculatescore(word, field)
     query_file = open(sys.argv[2], 'r')
     for query in query_file.readlines():
         query = query.lower()
