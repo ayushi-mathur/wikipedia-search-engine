@@ -16,7 +16,7 @@ class Indexer:
     articleFileCount = 0
     total_document_count = 0
 
-    ENCODING = "".join([string.digits, string.ascii_lowercase, string.ascii_uppercase, '+!'])
+    ENCODING = "".join(['!+', string.digits, string.ascii_lowercase, string.ascii_uppercase])
     BASE = len(ENCODING)
     ENCODING_REVERSE = dict((c, i) for (i, c) in enumerate(ENCODING))
     
