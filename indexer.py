@@ -15,7 +15,7 @@ class Indexer:
     titleIdMap = []
     articleFileCount = 0
     total_document_count = 0
-    titleOffset = [0]
+    titleOffset = ["0"]
     wordDocDict = {}
 
     ENCODING = "".join(['!+', string.digits, string.ascii_lowercase, string.ascii_uppercase])
@@ -46,7 +46,7 @@ class Indexer:
     def buildIndex(self):
         Id = Indexer.encode_number(Indexer.pageCount)
         title_str = f"{Id} {len(self.title)} {len(self.body)} {len(self.info)} {len(self.categories)} {len(self.references)} {len(self.links)} {self.og_title}"
-        Indexer.titleOffset.append(Indexer.titleOffset[-1]+len(title_str)+1)
+        Indexer.titleOffset.append(str(Indexer.titleOffset[-1]+len(title_str)+1))
         Indexer.titleIdMap.append(title_str)
         
         freq_dict = {}
@@ -174,7 +174,7 @@ class Indexer:
             f.write(data)
         Indexer.titleIdMap = []
         Indexer.articleFileCount+=1
-        Indexer.titleOffset = [0]
+        Indexer.titleOffset = ["0"]
     
     @staticmethod
     def writeTempIDF():
