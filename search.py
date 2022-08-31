@@ -55,8 +55,8 @@ class DocQuery():
         
         while lower<=upper:
             mid = (lower+upper)//2
-            print(mid)
-            print(f"upper -> {upper}")
+            # print(mid)
+            # print(f"upper -> {upper}")
             indexfile.seek(self.offsets[mid])
             linez = indexfile.readline().strip()
             linez_tok = linez.split()
@@ -80,7 +80,7 @@ class TitleFileQuery:
         fil = open(f"{sys.argv[2]}/title_pre_index.txt", "r")
         titles = fil.read().split()
         self.title_arr = [normalizeTitles(title) for title in titles]
-        print(self.title_arr)
+        # print(self.title_arr)
             
     
     # Returns all documents in which that query is present
@@ -102,21 +102,21 @@ class TitleQuery:
     # Returns all documents in which that query is present
     def fetchLine(self, query):
         query = normalizeTitles(query)
-        print(self.offsets[:10])
+        # print(self.offsets[:10])
         num_words = len(self.offsets)
         titlefile = open(self.title_file, "r")
         lower = 0
         # -2 coz the last value indicates the final empty line, that we shouldn't search in.
         upper = num_words-2
-        print(f"QUERY->{query}")
+        # print(f"QUERY->{query}")
         while lower<=upper:
             mid = (lower+upper)//2
             titlefile.seek(self.offsets[mid])
             linez = titlefile.readline().strip()
-            print(linez)
+            # print(linez)
             word = linez.split()[0]
             word = normalizeTitles(word)
-            print(word)
+            # print(word)
             if word==query:
                 titlefile.close()
                 return linez
@@ -181,7 +181,7 @@ def calculatescore(word, field):
         titlequery = TitleQuery(doc_file)
         doc_data = titlequery.fetchLine(doc_id)
         
-        print(doc_data)
+        # print(doc_data)
         doc_data = doc_data.split(" ", 7)
         doc_len = int(doc_data[FIELD_TO_INDEX[field]])
 
@@ -189,7 +189,7 @@ def calculatescore(word, field):
         score_dict[doc_id] = tf*idf
         title_dict[doc_id] = doc_data[-1]
         
-    print(score_dict)
+    print("YAY")
 
 if __name__ == "__main__":
     stemmer = Stemmer('english')
