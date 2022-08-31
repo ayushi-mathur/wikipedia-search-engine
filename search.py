@@ -71,7 +71,7 @@ class DocQuery():
         return []
 
 def normalizeTitles(title):
-    num_zer = 6 - len(title)
+    num_zer = 8 - len(title)
     title = "!"*num_zer + title
     return title
 
@@ -80,10 +80,12 @@ class TitleFileQuery:
         fil = open(f"{sys.argv[2]}/title_pre_index.txt", "r")
         titles = fil.read().split()
         self.title_arr = [normalizeTitles(title) for title in titles]
+        print(self.title_arr)
             
     
     # Returns all documents in which that query is present
     def processQuery(self, query):
+        query = normalizeTitles(query)
         i = bisect_left(self.title_arr, query)
         if i:
             return i-1
@@ -91,35 +93,69 @@ class TitleFileQuery:
 
 class TitleQuery:
     def __init__(self, file_no) -> None:
-        self.title_file = f"{sys.argv[2]}/title{file_no}.txt"
+        self.title_file = f"{sys.argv[2]}/title{str(file_no)}.txt"
         fil = open(f"{sys.argv[2]}/titleoffset{str(file_no)}.txt", "r")
         self.offsets = fil.read().split()
+        self.offsets = [int(_) for _ in self.offsets]
         fil.close()
     
     # Returns all documents in which that query is present
     def fetchLine(self, query):
+        query = normalizeTitles(query)
+        print(self.offsets[:10])
         num_words = len(self.offsets)
         titlefile = open(self.title_file, "r")
         lower = 0
         # -2 coz the last value indicates the final empty line, that we shouldn't search in.
         upper = num_words-2
-        
+        print(f"QUERY->{query}")
         while lower<=upper:
             mid = (lower+upper)//2
-            print(mid)
-            print(f"upper -> {upper}")
             titlefile.seek(self.offsets[mid])
             linez = titlefile.readline().strip()
-            linez_tok = linez.split()
-            if linez_tok[0]==query:
+            print(linez)
+            word = linez.split()[0]
+            word = normalizeTitles(word)
+            print(word)
+            if word==query:
                 titlefile.close()
-                return linez_tok
-            if linez_tok[0]<query:
+                return linez
+            if word<query:
                 lower = mid+1
             else: upper = mid-1
         
         titlefile.close()
-        return []
+        return ""
+
+class IDFQuery:
+    def __init__(self) -> None:
+        preindexfile = f"{sys.argv[2]}/idf_preindex.txt"
+        preindexfile = open(preindexfile, "r")
+        data = preindexfile.read().split("\n")
+        self.preindex = data
+        self.cached_idf = {}
+        preindexfile.close()
+    
+    def process_query(self, query):
+        if query in self.cached_idf:
+            return self.cached_idf[query]
+        fileno = bisect_left(self.preindex, query)
+        if not fileno:
+            self.cached_idf[query] = 0
+            return 0
+        fil = "".join([sys.argv[2], '/idf_', str(fileno) + '.txt'])
+        fil = open(fil, "r")
+        data = fil.read()
+        data = data.split("\n")
+        bin_search_data = [ele.split()[0] for ele in data]
+
+        word_idx = bisect_left(bin_search_data, query)
+        if word_idx != len(bin_search_data) and bin_search_data[word_idx] == query:
+            self.cached_idf[query] = float(data[word_idx].split()[1])
+            return float(data[word_idx].split()[1])
+        else:
+            self.cached_idf[query] = 0
+            return 0
 
 def fieldQuery(queries):
     for query in queries:
@@ -137,27 +173,32 @@ def calculatescore(word, field):
     score_dict = {}
     title_dict = {}
     titlefilequery = TitleFileQuery()
+    idfcalculator = IDFQuery()
+    idf = idfcalculator.process_query(word)
     for doc in doclist[1:]:
         doc_id, term_freq = doc.split(":")
         doc_file = titlefilequery.processQuery(doc_id)
         titlequery = TitleQuery(doc_file)
         doc_data = titlequery.fetchLine(doc_id)
         
+        print(doc_data)
         doc_data = doc_data.split(" ", 7)
         doc_len = int(doc_data[FIELD_TO_INDEX[field]])
 
-        tf = term_freq/doc_len
+        tf = int(term_freq)/doc_len
+        score_dict[doc_id] = tf*idf
+        title_dict[doc_id] = doc_data[-1]
         
-        
-    print(doclist)
+    print(score_dict)
 
 if __name__ == "__main__":
     stemmer = Stemmer('english')
     a = fileQuery(sys.argv[1])
-    while True:
-        word = input()
-        field = input()
-        calculatescore(word, field)
+    # while True:
+    word = "canada"
+    field = "b"
+    calculatescore(word, field)
+    exit(0)
     query_file = open(sys.argv[2], 'r')
     for query in query_file.readlines():
         query = query.lower()
