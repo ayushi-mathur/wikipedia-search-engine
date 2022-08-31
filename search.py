@@ -96,7 +96,6 @@ class TitleQuery:
         self.title_file = f"{sys.argv[2]}/title{str(file_no)}.txt"
         fil = open(f"{sys.argv[2]}/titleoffset{str(file_no)}.txt", "r")
         self.offsets = fil.read().split()
-        self.offsets = [int(_) for _ in self.offsets]
         fil.close()
     
     # Returns all documents in which that query is present
@@ -111,7 +110,7 @@ class TitleQuery:
         # print(f"QUERY->{query}")
         while lower<=upper:
             mid = (lower+upper)//2
-            titlefile.seek(self.offsets[mid])
+            titlefile.seek(int(self.offsets[mid]))
             linez = titlefile.readline().strip()
             # print(linez)
             word = linez.split()[0]
@@ -177,41 +176,49 @@ def calculatescore(word, field):
     idf = idfcalculator.process_query(word)
     for doc in doclist[1:]:
         doc_id, term_freq = doc.split(":")
-        doc_file = titlefilequery.processQuery(doc_id)
-        titlequery = TitleQuery(doc_file)
-        doc_data = titlequery.fetchLine(doc_id)
+        # doc_file = titlefilequery.processQuery(doc_id)
+        # titlequery = TitleQuery(doc_file)
         
         # print(doc_data)
-        doc_data = doc_data.split(" ", 7)
-        doc_len = int(doc_data[FIELD_TO_INDEX[field]])
 
-        tf = int(term_freq)/doc_len
+        tf = int(term_freq)
         score_dict[doc_id] = tf*idf
-        title_dict[doc_id] = doc_data[-1]
         
+    # doc_data = titlequery.fetchLine(doc_id)
+    # doc_data = doc_data.split(" ", 7)
+    # doc_len = int(doc_data[FIELD_TO_INDEX[field]])
+    # title_dict[doc_id] = doc_data[-1]
     print("YAY")
 
 if __name__ == "__main__":
-    stemmer = Stemmer('english')
-    a = fileQuery(sys.argv[1])
-    # while True:
-    word = "canada"
-    field = "b"
-    calculatescore(word, field)
-    exit(0)
-    query_file = open(sys.argv[2], 'r')
-    for query in query_file.readlines():
-        query = query.lower()
-        
-        if re.match(r'[t|b|i|c|r|l]:', query):
-            quer_arr = []
-            words = re.findall(r'[t|b|c|i|l|r]:([^:]*)(?!\S)', query)
-            tempFields = re.findall(r'([t|b|c|i|l|r]):', query)
+    # import cProfile
+    # import pstats
+    
+    # with cProfile.Profile() as profile:
+    if True:
+        stemmer = Stemmer('english')
+        a = fileQuery(sys.argv[1])
+        # while True:
+        word = "canada"
+        field = "b"
+        calculatescore(word, field)
+        # exit(0)
+        # query_file = open(sys.argv[2], 'r')
+        # for query in query_file.readlines():
+        #     query = query.lower()
             
-            words = stemmer.stemWords(words)
+        #     if re.match(r'[t|b|i|c|r|l]:', query):
+        #         quer_arr = []
+        #         words = re.findall(r'[t|b|c|i|l|r]:([^:]*)(?!\S)', query)
+        #         tempFields = re.findall(r'([t|b|c|i|l|r]):', query)
+                
+        #         words = stemmer.stemWords(words)
+                
+        #         for i in range(len(words)):
+        #             for word in words[i].split():
+        #                 quer_arr.append((tempFields[i], word))
             
-            for i in range(len(words)):
-                for word in words[i].split():
-                    quer_arr.append((tempFields[i], word))
-        
-            pageList, pageFreq = fieldQuery(quer_arr)
+        #         pageList, pageFreq = fieldQuery(quer_arr)
+        # stats = pstats.Stats(profile)
+        # stats.sort_stats(pstats.SortKey.TIME)
+        # stats.dump_stats(filename="profile.prof")
