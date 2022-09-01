@@ -19,14 +19,15 @@ class Page():
     def isValid(self, ele):
         return ele not in Page.stopWords and ele.isalpha() and len(ele)>3 and len(ele)<15
     
-    def getStemmedTokens(self, data):
+    def getStemmedTokens(self, data, isPage=True):
         data = data.encode("ascii", errors="ignore").decode()
 
         data = self.cleanData(data)
         
         data = data.split()
-        for ele in data:
-            Page.uniqueWords.add(ele)
+        if isPage:
+            for ele in data:
+                Page.uniqueWords.add(ele)
 
         stemmedtokens = [ele for ele in data if self.isValid(ele)]
         stemmedtokens = Page.stemmer.stemWords(stemmedtokens)

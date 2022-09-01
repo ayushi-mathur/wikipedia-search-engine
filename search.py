@@ -2,10 +2,13 @@ import sys
 import re
 import os
 from bisect import bisect_left
-from Stemmer import Stemmer
 import pickle
+import heapq
+from page import Page
+from time import time
 
 
+FIELD_TO_WEIGHT = {"t": 500, "b": 50, "i": 200, "c": 100, "r": 25, "l": 10}
 class fileQuery:
     def __init__(self, index_path) -> None:
         self.field_doc_heading = {}
@@ -41,7 +44,7 @@ class DocQuery():
     def __init__(self, field, file_no) -> None:
         self.field = field
         self.file_no = file_no
-        fil = open(f"{sys.argv[1]}/offset_{field}{file_no}.pkl", "rb")
+        fil = open(f"{sys.argv[2]}/offset_{field}{file_no}.pkl", "rb")
         self.offsets = pickle.load(fil)
         self.indexfilepath = f"{sys.argv[1]}/index_{field}{file_no}.txt"
     
@@ -138,10 +141,12 @@ class IDFQuery:
     def process_query(self, query):
         if query in self.cached_idf:
             return self.cached_idf[query]
-        fileno = bisect_left(self.preindex, query)
-        if not fileno:
-            self.cached_idf[query] = 0
-            return 0
+        fileno = bisect_left(self.preindex, query) - 1
+        print(f"FILEEEE {fileno}")
+        # exit(0)
+        # if not fileno:
+        #     self.cached_idf[query] = 0
+        #     return 0
         fil = "".join([sys.argv[2], '/idf_', str(fileno) + '.txt'])
         fil = open(fil, "r")
         data = fil.read()
@@ -164,16 +169,16 @@ def fieldQuery(queries):
             pass
     pass
 
-def calculatescore(word, field):
-    FIELD_TO_INDEX = {"t": 1, "b": 2, "i": 3, "c": 4, "r": 5, "l": 6}
+def calculatescore(word, field, score_dict):
     file_no = a.processQuery(word, field)
+    print(f"{file_no} {word} {field}")
     dquery = DocQuery(field, file_no)
     doclist = dquery.fetchLine(word)
-    score_dict = {}
-    title_dict = {}
-    titlefilequery = TitleFileQuery()
+    # title_dict = {}
+    # titlefilequery = TitleFileQuery()
     idfcalculator = IDFQuery()
     idf = idfcalculator.process_query(word)
+    curr_field_weight = FIELD_TO_WEIGHT[field]
     for doc in doclist[1:]:
         doc_id, term_freq = doc.split(":")
         # doc_file = titlefilequery.processQuery(doc_id)
@@ -182,43 +187,108 @@ def calculatescore(word, field):
         # print(doc_data)
 
         tf = int(term_freq)
-        score_dict[doc_id] = tf*idf
+        if doc_id in score_dict:
+            # score_dict[doc_id] += curr_field_weight*tf   
+            score_dict[doc_id] += curr_field_weight*tf*idf   
+        else:
+            # score_dict[doc_id] = curr_field_weight*tf
+            score_dict[doc_id] = curr_field_weight*tf*idf
         
     # doc_data = titlequery.fetchLine(doc_id)
     # doc_data = doc_data.split(" ", 7)
     # doc_len = int(doc_data[FIELD_TO_INDEX[field]])
     # title_dict[doc_id] = doc_data[-1]
-    print("YAY")
+
+def clean_query(data):
+    page = Page()
+    data = page.getStemmedTokens(data, False)
+    return data
+
+
+def rank_documents(query):
+    query = query.lower()
+    score_dict = {}
+    FIELD_TO_INDEX = {"t": 1, "b": 2, "i": 3, "c": 4, "r": 5, "l": 6}
+
+    titlefilequery = TitleFileQuery()
+    if re.match(r'[t|b|i|c|r|l]:', query):
+        quer_arr = []
+        quer_strings = re.findall(r'[t|b|c|i|l|r]:([^:]*)(?!\S)', query)
+        tempFields = re.findall(r'([t|b|c|i|l|r]):', query)
+
+        for idx, field in enumerate(tempFields):
+            q_string = quer_strings[idx]
+            q_data = clean_query(q_string)
+            for word in q_data:
+                calculatescore(word, field, score_dict)
+        
+        pq = []
+        for docid in score_dict:
+            pq.append((score_dict[docid], docid))
+        heapq._heapify_max(pq)
+
+        results = []
+        for i in range(10):
+            if not pq:
+                break
+            top_ele = heapq._heappop_max(pq)
+            doc_id = top_ele[1]
+            doc_file = titlefilequery.processQuery(doc_id)
+            titlequery = TitleQuery(doc_file)
+            doc_data = titlequery.fetchLine(doc_id)
+            doc_data = doc_data.split(" ", 7)
+            doc_title = doc_data[-1]
+            results.append(f"{doc_id}, {doc_title} {top_ele[0]}")
+        
+        write_str = "\n".join(results)
+        return write_str
+    
+    else:
+        tempFields = ['t', 'b', 'i', 'l', 'r', 'c']
+        q_string = query
+        for idx, field in enumerate(tempFields):
+            q_data = clean_query(q_string)
+            for word in q_data:
+                calculatescore(word, field, score_dict)
+        
+        pq = []
+        for docid in score_dict:
+            pq.append((score_dict[docid], docid))
+        heapq._heapify_max(pq)
+
+        results = []
+        for i in range(10):
+            if not pq:
+                break
+            top_ele = heapq._heappop_max(pq)
+            doc_id = top_ele[1]
+            doc_file = titlefilequery.processQuery(doc_id)
+            titlequery = TitleQuery(doc_file)
+            doc_data = titlequery.fetchLine(doc_id)
+            doc_data = doc_data.split(" ", 7)
+            doc_title = doc_data[-1]
+            results.append(f"{doc_id}, {doc_title} {top_ele[0]}")
+        
+        write_str = "\n".join(results)
+
 
 if __name__ == "__main__":
     # import cProfile
     # import pstats
     
     # with cProfile.Profile() as profile:
-    if True:
-        stemmer = Stemmer('english')
-        a = fileQuery(sys.argv[1])
+    # if True:
+    fil = open(sys.argv[1], "r")
+    if os.path.exists("./queries_op.txt"):
+        os.remove("./queries_op.txt")
+    a = fileQuery(sys.argv[1])
+    for line in fil.readlines():
         # while True:
-        word = "canada"
-        field = "b"
-        calculatescore(word, field)
-        # exit(0)
-        # query_file = open(sys.argv[2], 'r')
-        # for query in query_file.readlines():
-        #     query = query.lower()
-            
-        #     if re.match(r'[t|b|i|c|r|l]:', query):
-        #         quer_arr = []
-        #         words = re.findall(r'[t|b|c|i|l|r]:([^:]*)(?!\S)', query)
-        #         tempFields = re.findall(r'([t|b|c|i|l|r]):', query)
-                
-        #         words = stemmer.stemWords(words)
-                
-        #         for i in range(len(words)):
-        #             for word in words[i].split():
-        #                 quer_arr.append((tempFields[i], word))
-            
-        #         pageList, pageFreq = fieldQuery(quer_arr)
-        # stats = pstats.Stats(profile)
-        # stats.sort_stats(pstats.SortKey.TIME)
-        # stats.dump_stats(filename="profile.prof")
+        query = line
+        start_time = time()
+        write_str = rank_documents(query)
+        end_time = time()
+        with open("results.txt", "a+") as f:
+            f.write(write_str)
+            f.write(str(end_time-start_time))
+            f.write("\n")
