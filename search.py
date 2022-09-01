@@ -203,7 +203,7 @@ def calculatescore(word, field, score_dict):
         
         # print(doc_data)
 
-        tf = float(term_freq)
+        tf = int(term_freq)
         if doc_id in score_dict:
             # score_dict[doc_id] += curr_field_weight*tf   
             score_dict[doc_id] += curr_field_weight*tf*idf   

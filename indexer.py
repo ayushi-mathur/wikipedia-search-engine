@@ -4,11 +4,14 @@ import sys
 import heapq
 import os
 import pickle as pkl
-from math import log10
+from math import log10, floor
 PREINDEX_PAGE_COUNT = 15000
 VOCAB_PER_FILE = 50000
 TITLE_PER_FILE = 50000
 DICT_SIZE = 30000
+
+def round_it(x, sig):
+    return round(x, sig-int(floor(log10(abs(x))))-1)
 
 class Indexer:
     indDictT, indDictB, indDictL, indDictR, indDictC, indDictI = defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list)
@@ -54,7 +57,7 @@ class Indexer:
         total_info = len(self.info)
         total_categ = len(self.categories)
         total_refer = len(self.references)
-        total_links = len(self.references)
+        total_links = len(self.links)
         title_str = f"{Id} {self.og_title}"
         # title_str = f"{Id} {len(self.title)} {len(self.body)} {len(self.info)} {len(self.categories)} {len(self.references)} {len(self.links)} {self.og_title}"
         # Indexer.titleOffset.append(Indexer.titleOffset[-1]+len(title_str.encode('utf-8'))+1)
@@ -143,17 +146,17 @@ class Indexer:
         
         for word in common_freq_dict.keys():
             if word in title:
-                Indexer.indDictT[word].append(f"{Id}:{title[word]/max(total_title, 20)}")
+                Indexer.indDictT[word].append(f"{Id}:{title[word]}")
             if word in references:
-                Indexer.indDictR[word].append(f"{Id}:{references[word]/max(total_refer, 500)}")
+                Indexer.indDictR[word].append(f"{Id}:{references[word]}")
             if word in info:
-                Indexer.indDictI[word].append(f"{Id}:{info[word]/max(total_info, 1000)}")
+                Indexer.indDictI[word].append(f"{Id}:{info[word]}")
             if word in body:
-                Indexer.indDictB[word].append(f"{Id}:{body[word]/max(total_body, 10000)}")
+                Indexer.indDictB[word].append(f"{Id}:{body[word]}")
             if word in categories:
-                Indexer.indDictC[word].append(f"{Id}:{categories[word]/max(total_categ, 1000)}")
+                Indexer.indDictC[word].append(f"{Id}:{categories[word]}")
             if word in links:
-                Indexer.indDictL[word].append(f"{Id}:{links[word]/max(total_links, 600)}")
+                Indexer.indDictL[word].append(f"{Id}:{links[word]}")
             if word in Indexer.wordDocDict:
                 Indexer.wordDocDict[word]+=1
             else: Indexer.wordDocDict[word]=1
@@ -354,7 +357,7 @@ class Indexer:
                 
             if curr_word!=top_ele[0] and curr_word!="":
                 count+=1
-                curr_freq = log10(Indexer.total_document_count/curr_freq)
+                curr_freq = round_it(log10(Indexer.total_document_count/curr_freq), 6)
                 data.append(f"{curr_word} {curr_freq}")
                 curr_word = top_ele[0]
                 curr_freq = freq_dic[new_ind]
