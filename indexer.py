@@ -234,7 +234,7 @@ class Indexer:
         FirstLine = {}
         page_cnt = 0
         
-        vocabfiledata = []
+        # vocabfiledata = []
         
         # print(Indexer.file_cnt)
         for ind in range(Indexer.file_cnt):
@@ -276,7 +276,7 @@ class Indexer:
                     
                     offset.append(offset[-1]+len(curr_data)+1)
                     count+=1
-                    vocabfiledata.append(f"{curr_word} {curr_freq}-{page_cnt}")
+                    # vocabfiledata.append(f"{curr_word} {curr_freq}-{page_cnt}")
                     net_count += 1
                 curr_word = top_ele[0]
                 curr_data = FirstLine[new_ind]
@@ -301,12 +301,12 @@ class Indexer:
         data.append(curr_data)
         offset.append(offset[-1]+len(curr_data)+1)
         count+=1
-        vocabfiledata.append(f"{curr_word} {curr_freq}-{page_cnt}")
+        # vocabfiledata.append(f"{curr_word} {curr_freq}-{page_cnt}")
         Indexer.writeFile(page_cnt, file_field, data, offset)
         
-        with open(sys.argv[2] + "/vocab" + file_field+".txt", "a") as f:
-            vocabfiledata = "\n".join(vocabfiledata)
-            f.write(vocabfiledata)
+        # with open(sys.argv[2] + "/vocab" + file_field+".txt", "a") as f:
+        #     vocabfiledata = "\n".join(vocabfiledata)
+        #     f.write(vocabfiledata)
         return net_count
     
     def mergeIDF():
@@ -518,7 +518,7 @@ class Indexer:
         total_count += Indexer.mergeIndexFiles('r')
         total_count += Indexer.mergeIndexFiles('c')
         total_count += Indexer.mergeIndexFiles('i')
-        Indexer.mergeVocabulary()
+        # Indexer.mergeVocabulary()
         Indexer.mergeIDF()
         Indexer.writePreIndex()
         return total_count
