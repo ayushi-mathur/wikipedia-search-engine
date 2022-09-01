@@ -49,8 +49,9 @@ class Indexer:
 
     def buildIndex(self):
         Id = Indexer.encode_number(Indexer.pageCount)
-        title_str = f"{Id} {len(self.title)} {len(self.body)} {len(self.info)} {len(self.categories)} {len(self.references)} {len(self.links)} {self.og_title}"
-        Indexer.titleOffset.append(Indexer.titleOffset[-1]+len(title_str.encode('utf-8'))+1)
+        # title_str = f"{Id} {len(self.title)} {len(self.body)} {len(self.info)} {len(self.categories)} {len(self.references)} {len(self.links)} {self.og_title}"
+        title_str = f"{Id} {self.og_title}"
+        # Indexer.titleOffset.append(Indexer.titleOffset[-1]+len(title_str.encode('utf-8'))+1)
         Indexer.titleIdMap.append(title_str)
         
         freq_dict = {}
@@ -169,11 +170,11 @@ class Indexer:
         with open(filename, "w") as f:
             f.write(data)
         
-        data = [str(ele) for ele in Indexer.titleOffset]
-        data = " ".join(data)
-        filename = f"{sys.argv[2]}/titleoffset{str(Indexer.articleFileCount)}.txt"
-        with open(filename, "w") as f:
-            f.write(data)
+        # data = [str(ele) for ele in Indexer.titleOffset]
+        # data = " ".join(data)
+        # filename = f"{sys.argv[2]}/titleoffset{str(Indexer.articleFileCount)}.txt"
+        # with open(filename, "w") as f:
+        #     f.write(data)
         Indexer.titleIdMap = []
         Indexer.articleFileCount+=1
         Indexer.titleOffset = [0]
