@@ -55,6 +55,8 @@ class Indexer:
         Indexer.total_document_count += 1
         
         for word in self.title:
+            if word.strip()=="":
+                continue
             if word in freq_dict:
                 freq_dict[word]+=1
             else:
@@ -68,6 +70,8 @@ class Indexer:
         
         freq_dict = {}
         for word in self.categories:
+            if word.strip()=="":
+                continue
             if word in freq_dict:
                 freq_dict[word]+=1
             else:
@@ -81,6 +85,8 @@ class Indexer:
         
         freq_dict = {}
         for word in self.info:
+            if word.strip()=="":
+                continue
             if word in freq_dict:
                 freq_dict[word]+=1
             else:
@@ -94,6 +100,8 @@ class Indexer:
         
         freq_dict = {}
         for word in self.references:
+            if word.strip()=="":
+                continue
             if word in freq_dict:
                 freq_dict[word]+=1
             else:
@@ -107,6 +115,8 @@ class Indexer:
         
         freq_dict = {}
         for word in self.body:
+            if word.strip()=="":
+                continue
             if word in freq_dict:
                 freq_dict[word]+=1
             else:
@@ -120,6 +130,8 @@ class Indexer:
         
         freq_dict = {}
         for word in self.links:
+            if word.strip()=="":
+                continue
             if word in freq_dict:
                 freq_dict[word]+=1
             else:
@@ -132,6 +144,8 @@ class Indexer:
         links = freq_dict
         
         for word in common_freq_dict.keys():
+            if word.strip() == '':
+                continue
             if word in title:
                 Indexer.indDictT[word].append(f"{Id}:{title[word]}")
             if word in references:
@@ -244,7 +258,10 @@ class Indexer:
         for ind in range(Indexer.file_cnt):
             fil = "".join([sys.argv[2], '/index', file_field + str(ind) + '.txt'])
             files_arr[ind] = open(fil, 'r')
-            FirstLine[ind]=files_arr[ind].readline().strip()
+            FirstLine[ind]=files_arr[ind].readline()
+            if FirstLine[ind][0]==' ':
+                FirstLine[ind]=files_arr[ind].readline()
+            FirstLine[ind]=FirstLine[ind].strip()
             if FirstLine[ind] == '':
                 continue
             wordsFirstLine[ind] = FirstLine[ind].split()
@@ -271,16 +288,16 @@ class Indexer:
                 count=1
                 offset = [0]
                 
-            if curr_word!=top_ele[0] and curr_word!="":
-                
-                data.append(curr_data)
-                
-                offset.append(offset[-1]+len(curr_data)+1)
-                count+=1
-                vocabfiledata.append(f"{curr_word} {curr_freq}-{page_cnt}")
+            if curr_word!=top_ele[0]:
+                if curr_word!='':
+                    data.append(curr_data)
+                    
+                    offset.append(offset[-1]+len(curr_data)+1)
+                    count+=1
+                    vocabfiledata.append(f"{curr_word} {curr_freq}-{page_cnt}")
+                    net_count += 1
                 curr_word = top_ele[0]
                 curr_data = FirstLine[new_ind]
-                net_count += 1
                 curr_freq = 1
             else:
                 # curr_data += " " + " ".join(wordsTopLine[new_ind][1:])

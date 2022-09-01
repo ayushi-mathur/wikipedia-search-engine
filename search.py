@@ -30,7 +30,7 @@ class fileQuery:
         self.field_doc_heading[field] = []
         while(os.path.exists(file_path)):
             with open(file_path, "r") as f:
-                self.field_doc_heading[field].append(f.readline())
+                self.field_doc_heading[field].append(f.readline().split()[0])
             file_no+=1
             file_path = f"{self.index_path}/index_{field}{file_no}.txt"
     
