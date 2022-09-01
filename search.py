@@ -5,6 +5,7 @@ from bisect import bisect_left
 import pickle
 import heapq
 from page import Page
+from indexer import Indexer
 from time import time
 
 
@@ -12,9 +13,7 @@ FIELD_TO_WEIGHT = {"t": 500, "b": 50, "i": 200, "c": 100, "r": 25, "l": 10}
 class fileQuery:
     def __init__(self, index_path) -> None:
         self.field_doc_heading = {}
-        self.index_path = index_path
         self.preprocess_heading()
-        pass
 
     def preprocess_heading(self):
         self.filedwise_heading('b')
@@ -25,14 +24,12 @@ class fileQuery:
         self.filedwise_heading('l')
         
     def filedwise_heading(self, field):
-        file_no = 0
-        file_path = f"{self.index_path}/index_{field}{file_no}.txt"
+        file_path = f"{sys.argv[2]}/preindex_{field}"
         self.field_doc_heading[field] = []
-        while(os.path.exists(file_path)):
-            with open(file_path, "r") as f:
-                self.field_doc_heading[field].append(f.readline().split()[0])
-            file_no+=1
-            file_path = f"{self.index_path}/index_{field}{file_no}.txt"
+        with open(file_path, "r") as f:
+            data = f.read()
+            data = data.split("\n")
+            self.field_doc_heading[field] = data
     
     def processQuery(self, query, field):
         i = bisect_left(self.field_doc_heading[field], query)
@@ -44,9 +41,11 @@ class DocQuery():
     def __init__(self, field, file_no) -> None:
         self.field = field
         self.file_no = file_no
-        fil = open(f"{sys.argv[2]}/offset_{field}{file_no}.pkl", "rb")
-        self.offsets = pickle.load(fil)
-        self.indexfilepath = f"{sys.argv[1]}/index_{field}{file_no}.txt"
+        fil = open(f"{sys.argv[2]}/offset_{field}{file_no}.txt", "r")
+        offsets = fil.read()
+        self.offsets = offsets.split("\n")
+        self.indexfilepath = f"{sys.argv[2]}/index_{field}{file_no}.txt"
+        fil.close()
     
     # Returns all documents in which that query is present
     def fetchLine(self, query):
@@ -60,7 +59,7 @@ class DocQuery():
             mid = (lower+upper)//2
             # print(mid)
             # print(f"upper -> {upper}")
-            indexfile.seek(self.offsets[mid])
+            indexfile.seek(int(self.offsets[mid]))
             linez = indexfile.readline().strip()
             linez_tok = linez.split()
             if linez_tok[0]==query:
@@ -81,10 +80,8 @@ def normalizeTitles(title):
 class TitleFileQuery:
     def __init__(self) -> None:
         fil = open(f"{sys.argv[2]}/title_pre_index.txt", "r")
-        titles = fil.read().split()
+        titles = fil.read().split("\n")
         self.title_arr = [normalizeTitles(title) for title in titles]
-        # print(self.title_arr)
-            
     
     # Returns all documents in which that query is present
     def processQuery(self, query):
@@ -97,37 +94,57 @@ class TitleFileQuery:
 class TitleQuery:
     def __init__(self, file_no) -> None:
         self.title_file = f"{sys.argv[2]}/title{str(file_no)}.txt"
-        fil = open(f"{sys.argv[2]}/titleoffset{str(file_no)}.txt", "r")
-        self.offsets = fil.read().split()
+        # fil = open(f"{sys.argv[2]}/titleoffset{str(file_no)}.txt", "r")
+        # self.offsets = fil.read().split()
         fil.close()
     
     # Returns all documents in which that query is present
     def fetchLine(self, query):
         query = normalizeTitles(query)
         # print(self.offsets[:10])
-        num_words = len(self.offsets)
+        # num_words = len(self.offsets)
         titlefile = open(self.title_file, "r")
+        data = titlefile.read()
+        data = data.split("\n")
         lower = 0
-        # -2 coz the last value indicates the final empty line, that we shouldn't search in.
-        upper = num_words-2
-        # print(f"QUERY->{query}")
-        while lower<=upper:
-            mid = (lower+upper)//2
-            titlefile.seek(int(self.offsets[mid]))
-            linez = titlefile.readline().strip()
-            # print(linez)
-            word = linez.split()[0]
-            word = normalizeTitles(word)
-            # print(word)
-            if word==query:
-                titlefile.close()
-                return linez
-            if word<query:
-                lower = mid+1
-            else: upper = mid-1
-        
+        indexer = Indexer()
+        query_num = indexer.decode_number(query)
+        base = data[0].split(" ", 1)[0]
+
+        base_num = indexer.decode_number(base)
+        line_no = query_num-base_num
+        ans = data[line_no]
         titlefile.close()
-        return ""
+        return ans       
+
+
+    # OFFSET BASED FUNCTION. UNUSED.
+    # def fetchLine(self, query):
+    #     query = normalizeTitles(query)
+    #     # print(self.offsets[:10])
+    #     num_words = len(self.offsets)
+    #     titlefile = open(self.title_file, "r")
+    #     lower = 0
+    #     # -2 coz the last value indicates the final empty line, that we shouldn't search in.
+    #     upper = num_words-2
+    #     # print(f"QUERY->{query}")
+    #     while lower<=upper:
+    #         mid = (lower+upper)//2
+    #         titlefile.seek(int(self.offsets[mid]))
+    #         linez = titlefile.readline().strip()
+    #         # print(linez)
+    #         word = linez.split()[0]
+    #         word = normalizeTitles(word)
+    #         # print(word)
+    #         if word==query:
+    #             titlefile.close()
+    #             return linez
+    #         if word<query:
+    #             lower = mid+1
+    #         else: upper = mid-1
+        
+    #     titlefile.close()
+    #     return ""
 
 class IDFQuery:
     def __init__(self) -> None:
@@ -236,11 +253,13 @@ def rank_documents(query):
             doc_file = titlefilequery.processQuery(doc_id)
             titlequery = TitleQuery(doc_file)
             doc_data = titlequery.fetchLine(doc_id)
-            doc_data = doc_data.split(" ", 7)
+            doc_data = doc_data.split(" ", 1)
             doc_title = doc_data[-1]
             results.append(f"{doc_id}, {doc_title} {top_ele[0]}")
         
         write_str = "\n".join(results)
+        if write_str is None:
+            write_str = ""
         return write_str
     
     else:
@@ -265,7 +284,7 @@ def rank_documents(query):
             doc_file = titlefilequery.processQuery(doc_id)
             titlequery = TitleQuery(doc_file)
             doc_data = titlequery.fetchLine(doc_id)
-            doc_data = doc_data.split(" ", 7)
+            doc_data = doc_data.split(" ", 1)
             doc_title = doc_data[-1]
             results.append(f"{doc_id}, {doc_title} {top_ele[0]}")
         
@@ -287,8 +306,12 @@ if __name__ == "__main__":
         query = line
         start_time = time()
         write_str = rank_documents(query)
+        print(write_str)
         end_time = time()
-        with open("results.txt", "a+") as f:
-            f.write(write_str)
+        with open("./queries_op.txt", "a+") as f:
+            if write_str is not None:
+                f.write(write_str)
+            f.write("\n")
             f.write(str(end_time-start_time))
+            f.write("\n")
             f.write("\n")
