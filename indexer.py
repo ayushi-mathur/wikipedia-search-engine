@@ -18,6 +18,9 @@ class Indexer:
     total_document_count = 0
     titleOffset = [0]
     wordDocDict = {}
+    TopLines = {}
+    titlePreIndex = []
+    idf_preindex = []
 
     ENCODING = "".join(['!+', string.digits, string.ascii_uppercase, string.ascii_lowercase])
     BASE = len(ENCODING)
@@ -55,8 +58,6 @@ class Indexer:
         Indexer.total_document_count += 1
         
         for word in self.title:
-            if word.strip()=="":
-                continue
             if word in freq_dict:
                 freq_dict[word]+=1
             else:
@@ -70,8 +71,6 @@ class Indexer:
         
         freq_dict = {}
         for word in self.categories:
-            if word.strip()=="":
-                continue
             if word in freq_dict:
                 freq_dict[word]+=1
             else:
@@ -85,8 +84,6 @@ class Indexer:
         
         freq_dict = {}
         for word in self.info:
-            if word.strip()=="":
-                continue
             if word in freq_dict:
                 freq_dict[word]+=1
             else:
@@ -100,8 +97,6 @@ class Indexer:
         
         freq_dict = {}
         for word in self.references:
-            if word.strip()=="":
-                continue
             if word in freq_dict:
                 freq_dict[word]+=1
             else:
@@ -115,8 +110,6 @@ class Indexer:
         
         freq_dict = {}
         for word in self.body:
-            if word.strip()=="":
-                continue
             if word in freq_dict:
                 freq_dict[word]+=1
             else:
@@ -130,8 +123,6 @@ class Indexer:
         
         freq_dict = {}
         for word in self.links:
-            if word.strip()=="":
-                continue
             if word in freq_dict:
                 freq_dict[word]+=1
             else:
@@ -144,8 +135,6 @@ class Indexer:
         links = freq_dict
         
         for word in common_freq_dict.keys():
-            if word.strip() == '':
-                continue
             if word in title:
                 Indexer.indDictT[word].append(f"{Id}:{title[word]}")
             if word in references:
@@ -173,14 +162,7 @@ class Indexer:
     def writeTitleFile():
         if len(Indexer.titleIdMap)==0:
             return
-        filename = f"{sys.argv[2]}/title_pre_index.txt"
-        if Indexer.articleFileCount==0:
-            filename = open(filename, "w")
-        else:
-            filename = open(filename, "a+")
-        filename.write(Indexer.titleIdMap[0].split()[0])
-        filename.write("\n")
-        filename.close()
+        Indexer.titlePreIndex.append(Indexer.titleIdMap[0].split(" ", 1)[0])
         
         data = "\n".join(Indexer.titleIdMap)
         filename = f"{sys.argv[2]}/title{str(Indexer.articleFileCount)}.txt"
@@ -463,14 +445,25 @@ class Indexer:
     
     @staticmethod
     def writeFile(pageCount, file_field, data, offset):
+        # fil_name = f"{sys.argv[2]}/preindex_{file_field}"
+        if pageCount==0:
+            Indexer.TopLines[file_field] = [data[0].split()[0]]
+        else:
+            Indexer.TopLines[file_field].append(data[0].split()[0])
+        # if pageCount==0:
+        #     fil_name = open(fil_name, "w")
+        # else:
+        #     fil_name = open(fil_name, "a+")
         fil = "".join([sys.argv[2], '/index_', file_field + str(pageCount) + '.txt'])
         fil = open(fil, "w")
         data = "\n".join(data)
         fil.write(data)
         fil.close()
         
-        pkl_file = open(f"{sys.argv[2]}/offset_{file_field}{pageCount}.pkl", "wb")
-        pkl.dump(offset, pkl_file)
+        pkl_file = open(f"{sys.argv[2]}/offset_{file_field}{pageCount}.txt", "w")
+        data = [str(ele) for ele in offset]
+        data = "\n".join(data)
+        pkl_file.write(data)
         pkl_file.close()
         return pageCount+1
     
@@ -485,12 +478,7 @@ class Indexer:
     
     @staticmethod
     def writeIDFFile(pageCount, data):
-        fil = f"{sys.argv[2]}/idf_preindex.txt"
-        if pageCount==0: fil = open(fil, "w")
-        else: fil = open(fil, "a+")
-        fil.write(data[0])
-        fil.write("\n")
-        fil.close()
+        Indexer.idf_preindex.append(data[0].split()[0])
 
         fil = "".join([sys.argv[2], '/idf_', str(pageCount) + '.txt'])
         fil = open(fil, "w")
@@ -499,6 +487,28 @@ class Indexer:
         fil.close()
         return pageCount+1
     
+    @staticmethod
+    def writePreIndex():
+        for file_field in ['b','c','i','l','r','t']:
+            fil_name = f"{sys.argv[2]}/preindex_{file_field}"
+            fil = open(fil_name, "w")
+            data = "\n".join(Indexer.TopLines[file_field])
+            fil.write(data)
+            fil.close()
+
+        filename = f"{sys.argv[2]}/title_pre_index.txt"
+        filename = open(filename, "w")
+        data = "\n".join(Indexer.titlePreIndex)
+        filename.write(data)
+        filename.close()
+
+        fil = f"{sys.argv[2]}/idf_preindex.txt"
+        filename = open(fil, "w")
+        data = "\n".join(Indexer.idf_preindex)
+        filename.write(data)
+        filename.close()
+
+
     @staticmethod
     def mergedata():
         total_count = 0
@@ -510,4 +520,5 @@ class Indexer:
         total_count += Indexer.mergeIndexFiles('i')
         Indexer.mergeVocabulary()
         Indexer.mergeIDF()
+        Indexer.writePreIndex()
         return total_count
