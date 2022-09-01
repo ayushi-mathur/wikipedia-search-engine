@@ -49,8 +49,14 @@ class Indexer:
 
     def buildIndex(self):
         Id = Indexer.encode_number(Indexer.pageCount)
-        # title_str = f"{Id} {len(self.title)} {len(self.body)} {len(self.info)} {len(self.categories)} {len(self.references)} {len(self.links)} {self.og_title}"
+        total_title = len(self.title)
+        total_body = len(self.body)
+        total_info = len(self.info)
+        total_categ = len(self.categories)
+        total_refer = len(self.references)
+        total_links = len(self.references)
         title_str = f"{Id} {self.og_title}"
+        # title_str = f"{Id} {len(self.title)} {len(self.body)} {len(self.info)} {len(self.categories)} {len(self.references)} {len(self.links)} {self.og_title}"
         # Indexer.titleOffset.append(Indexer.titleOffset[-1]+len(title_str.encode('utf-8'))+1)
         Indexer.titleIdMap.append(title_str)
         
@@ -137,17 +143,17 @@ class Indexer:
         
         for word in common_freq_dict.keys():
             if word in title:
-                Indexer.indDictT[word].append(f"{Id}:{title[word]}")
+                Indexer.indDictT[word].append(f"{Id}:{title[word]/max(total_title, 20)}")
             if word in references:
-                Indexer.indDictR[word].append(f"{Id}:{references[word]}")
+                Indexer.indDictR[word].append(f"{Id}:{references[word]/max(total_refer, 500)}")
             if word in info:
-                Indexer.indDictI[word].append(f"{Id}:{info[word]}")
+                Indexer.indDictI[word].append(f"{Id}:{info[word]/max(total_info, 1000)}")
             if word in body:
-                Indexer.indDictB[word].append(f"{Id}:{body[word]}")
+                Indexer.indDictB[word].append(f"{Id}:{body[word]/max(total_body, 10000)}")
             if word in categories:
-                Indexer.indDictC[word].append(f"{Id}:{categories[word]}")
+                Indexer.indDictC[word].append(f"{Id}:{categories[word]/max(total_categ, 1000)}")
             if word in links:
-                Indexer.indDictL[word].append(f"{Id}:{links[word]}")
+                Indexer.indDictL[word].append(f"{Id}:{links[word]/max(total_links, 600)}")
             if word in Indexer.wordDocDict:
                 Indexer.wordDocDict[word]+=1
             else: Indexer.wordDocDict[word]=1
