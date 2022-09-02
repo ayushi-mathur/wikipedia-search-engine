@@ -9,7 +9,8 @@ from indexer import Indexer
 from time import time
 
 
-FIELD_TO_WEIGHT = {"t": 2000, "b": 50, "i": 200, "c": 100, "r": 25, "l": 10}
+FIELD_TO_WEIGHT_FIELDQ = {"t": 2500, "b": 50, "i": 2100, "c": 2000, "r": 25, "l": 10}
+FIELD_TO_WEIGHT_NORMALQ = {"t": 2500, "b": 300, "i": 2100, "c": 2000, "r": 1500, "l": 1500}
 class fileQuery:
     def __init__(self, index_path) -> None:
         self.field_doc_heading = {}
@@ -147,22 +148,22 @@ class TitleQuery:
     #     return ""
 
 class IDFQuery:
+    cached_idf = {}
     def __init__(self) -> None:
         preindexfile = f"{sys.argv[2]}/idf_preindex.txt"
         preindexfile = open(preindexfile, "r")
         data = preindexfile.read().split("\n")
         self.preindex = data
-        self.cached_idf = {}
         preindexfile.close()
     
     def process_query(self, query):
-        if query in self.cached_idf:
-            return self.cached_idf[query]
+        if query in IDFQuery.cached_idf:
+            return IDFQuery.cached_idf[query]
         fileno = bisect_left(self.preindex, query) - 1
         # print(f"FILEEEE {fileno}")
         # exit(0)
         # if not fileno:
-        #     self.cached_idf[query] = 0
+        #     IDFQuery.cached_idf[query] = 0
         #     return 0
         fil = "".join([sys.argv[2], '/idf_', str(fileno) + '.txt'])
         fil = open(fil, "r")
@@ -172,32 +173,28 @@ class IDFQuery:
 
         word_idx = bisect_left(bin_search_data, query)
         if word_idx != len(bin_search_data) and bin_search_data[word_idx] == query:
-            self.cached_idf[query] = float(data[word_idx].split()[1])
+            IDFQuery.cached_idf[query] = float(data[word_idx].split()[1])
             return float(data[word_idx].split()[1])
         else:
-            self.cached_idf[query] = 0
+            IDFQuery.cached_idf[query] = 0
             return 0
-
-def fieldQuery(queries):
-    for query in queries:
-        field = query[0]
-        word = query[1]
-        if word != '' and word != ' ':
-            pass
-    pass
 
 def calculatescore(word, field, score_dict, isFieldQuery=False):
     file_no = a.processQuery(word, field)
-    print(f"{file_no} {word} {field}")
+    # print(f"{file_no} {word} {field}")
     dquery = DocQuery(field, file_no)
     doclist = dquery.fetchLine(word)
     # title_dict = {}
     # titlefilequery = TitleFileQuery()
     idfcalculator = IDFQuery()
     idf = idfcalculator.process_query(word)
-    curr_field_weight = FIELD_TO_WEIGHT[field]
+    curr_field_weight = 1
     if isFieldQuery:
-        curr_field_weight = 1
+        curr_field_weight = FIELD_TO_WEIGHT_FIELDQ[field]
+    else:
+        curr_field_weight = FIELD_TO_WEIGHT_NORMALQ[field]
+    # if isFieldQuery:
+    #     curr_field_weight = 1
     for doc in doclist[1:]:
         doc_id, term_freq = doc.split(":")
         # doc_file = titlefilequery.processQuery(doc_id)
@@ -231,7 +228,7 @@ def rank_documents(query):
 
     titlefilequery = TitleFileQuery()
     if re.match(r'[t|b|i|c|r|l]:', query):
-        print("CCCCCCCCCCCCCCCCCCCC")
+        # print("CCCCCCCCCCCCCCCCCCCC")
         quer_arr = []
         quer_strings = re.findall(r'[t|b|c|i|l|r]:([^:]*)(?!\S)', query)
         tempFields = re.findall(r'([t|b|c|i|l|r]):', query)
@@ -288,8 +285,9 @@ def rank_documents(query):
             doc_data = titlequery.fetchLine(doc_id)
             doc_data = doc_data.split(" ", 1)
             doc_title = doc_data[-1]
-            results.append(f"{doc_id}, {doc_title} {top_ele[0]}")
+            results.append(f"{doc_id}, {doc_title}")
         write_str = "\n".join(results)
+    # write_str+=("\n"+str(score_dict.get("+AgN")))
     return write_str
 
 if __name__ == "__main__":
@@ -307,7 +305,7 @@ if __name__ == "__main__":
         query = line
         start_time = time()
         write_str = rank_documents(query)
-        print(write_str)
+        # print(write_str)
         end_time = time()
         with open("./queries_op.txt", "a+") as f:
             if write_str is not None:

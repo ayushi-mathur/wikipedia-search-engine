@@ -24,6 +24,7 @@ class Indexer:
     TopLines = {}
     titlePreIndex = []
     idf_preindex = []
+    final_file_count = 0
 
     ENCODING = "".join(['!+', string.digits, string.ascii_uppercase, string.ascii_lowercase])
     BASE = len(ENCODING)
@@ -460,6 +461,7 @@ class Indexer:
             Indexer.TopLines[file_field] = [data[0].split()[0]]
         else:
             Indexer.TopLines[file_field].append(data[0].split()[0])
+        Indexer.final_file_count += 1
         # if pageCount==0:
         #     fil_name = open(fil_name, "w")
         # else:
