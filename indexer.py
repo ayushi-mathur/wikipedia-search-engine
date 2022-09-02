@@ -146,17 +146,17 @@ class Indexer:
         
         for word in common_freq_dict.keys():
             if word in title:
-                Indexer.indDictT[word].append(f"{Id}:{Indexer.encode_number(title[word])}:{Indexer.encode_number(total_title)}")
+                Indexer.indDictT[word].append(f"{Id}:{Indexer.encode_number(title[word])}")
             if word in references:
-                Indexer.indDictR[word].append(f"{Id}:{Indexer.encode_number(references[word])}:{Indexer.encode_number(total_refer)}")
+                Indexer.indDictR[word].append(f"{Id}:{Indexer.encode_number(references[word])}")
             if word in info:
-                Indexer.indDictI[word].append(f"{Id}:{Indexer.encode_number(info[word])}:{Indexer.encode_number(total_info)}")
+                Indexer.indDictI[word].append(f"{Id}:{Indexer.encode_number(info[word])}")
             if word in body:
-                Indexer.indDictB[word].append(f"{Id}:{Indexer.encode_number(body[word])}:{Indexer.encode_number(total_body)}")
+                Indexer.indDictB[word].append(f"{Id}:{Indexer.encode_number(body[word])}")
             if word in categories:
-                Indexer.indDictC[word].append(f"{Id}:{Indexer.encode_number(categories[word])}:{Indexer.encode_number(total_categ)}")
+                Indexer.indDictC[word].append(f"{Id}:{Indexer.encode_number(categories[word])}")
             if word in links:
-                Indexer.indDictL[word].append(f"{Id}:{Indexer.encode_number(links[word])}:{Indexer.encode_number(total_links)}")
+                Indexer.indDictL[word].append(f"{Id}:{Indexer.encode_number(links[word])}")
             if word in Indexer.wordDocDict:
                 Indexer.wordDocDict[word]+=1
             else: Indexer.wordDocDict[word]=1
