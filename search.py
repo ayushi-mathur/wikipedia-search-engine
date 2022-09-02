@@ -97,7 +97,7 @@ class TitleQuery:
         self.title_file = f"{sys.argv[2]}/title{str(file_no)}.txt"
         # fil = open(f"{sys.argv[2]}/titleoffset{str(file_no)}.txt", "r")
         # self.offsets = fil.read().split()
-        fil.close()
+        # fil.close()
     
     # Returns all documents in which that query is present
     def fetchLine(self, query):
