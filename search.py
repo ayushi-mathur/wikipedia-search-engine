@@ -9,7 +9,7 @@ from indexer import Indexer
 from time import time
 
 
-FIELD_TO_WEIGHT = {"t": 500, "b": 50, "i": 200, "c": 100, "r": 25, "l": 10}
+FIELD_TO_WEIGHT = {"t": 2000, "b": 50, "i": 200, "c": 100, "r": 25, "l": 10}
 class fileQuery:
     def __init__(self, index_path) -> None:
         self.field_doc_heading = {}
@@ -159,7 +159,7 @@ class IDFQuery:
         if query in self.cached_idf:
             return self.cached_idf[query]
         fileno = bisect_left(self.preindex, query) - 1
-        print(f"FILEEEE {fileno}")
+        # print(f"FILEEEE {fileno}")
         # exit(0)
         # if not fileno:
         #     self.cached_idf[query] = 0
@@ -186,7 +186,7 @@ def fieldQuery(queries):
             pass
     pass
 
-def calculatescore(word, field, score_dict):
+def calculatescore(word, field, score_dict, isFieldQuery=False):
     file_no = a.processQuery(word, field)
     print(f"{file_no} {word} {field}")
     dquery = DocQuery(field, file_no)
@@ -196,6 +196,8 @@ def calculatescore(word, field, score_dict):
     idfcalculator = IDFQuery()
     idf = idfcalculator.process_query(word)
     curr_field_weight = FIELD_TO_WEIGHT[field]
+    if isFieldQuery:
+        curr_field_weight = 1
     for doc in doclist[1:]:
         doc_id, term_freq = doc.split(":")
         # doc_file = titlefilequery.processQuery(doc_id)
@@ -203,7 +205,7 @@ def calculatescore(word, field, score_dict):
         
         # print(doc_data)
 
-        tf = int(term_freq)
+        tf = Indexer.decode_number(term_freq)
         if doc_id in score_dict:
             # score_dict[doc_id] += curr_field_weight*tf   
             score_dict[doc_id] += curr_field_weight*tf*idf   
@@ -229,6 +231,7 @@ def rank_documents(query):
 
     titlefilequery = TitleFileQuery()
     if re.match(r'[t|b|i|c|r|l]:', query):
+        print("CCCCCCCCCCCCCCCCCCCC")
         quer_arr = []
         quer_strings = re.findall(r'[t|b|c|i|l|r]:([^:]*)(?!\S)', query)
         tempFields = re.findall(r'([t|b|c|i|l|r]):', query)
@@ -237,7 +240,7 @@ def rank_documents(query):
             q_string = quer_strings[idx]
             q_data = clean_query(q_string)
             for word in q_data:
-                calculatescore(word, field, score_dict)
+                calculatescore(word, field, score_dict, True)
         
         pq = []
         for docid in score_dict:
@@ -260,7 +263,6 @@ def rank_documents(query):
         write_str = "\n".join(results)
         if write_str is None:
             write_str = ""
-        return write_str
     
     else:
         tempFields = ['t', 'b', 'i', 'l', 'r', 'c']
@@ -268,7 +270,7 @@ def rank_documents(query):
         for idx, field in enumerate(tempFields):
             q_data = clean_query(q_string)
             for word in q_data:
-                calculatescore(word, field, score_dict)
+                calculatescore(word, field, score_dict, False)
         
         pq = []
         for docid in score_dict:
@@ -287,9 +289,8 @@ def rank_documents(query):
             doc_data = doc_data.split(" ", 1)
             doc_title = doc_data[-1]
             results.append(f"{doc_id}, {doc_title} {top_ele[0]}")
-        
         write_str = "\n".join(results)
-
+    return write_str
 
 if __name__ == "__main__":
     # import cProfile
