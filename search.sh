@@ -1,1 +1,1 @@
-echo "Search not implemented for phase 1"
+python3 search.py $1 $2 $3
