@@ -15,7 +15,7 @@ class HandlePages(xml.sax.ContentHandler):
         self.currTag = tag
     
     def isUseful(self):
-        return not (self.title.startswith("Wikipedia:") or self.title.startswith("File:") or self.title.startswith("Template:") or self.title.startswith("Categories:"))
+        return not (self.title.startswith("Wikipedia:") or self.title.startswith("File:") or self.title.startswith("Template:"))
 
     def endElement(self, tag):
         if tag == 'page':
