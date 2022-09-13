@@ -20,9 +20,9 @@ class Page():
         if ele in Page.stopWords:
             return False
         length = len(ele)
-        if ele.isalpha() and len(ele)>=3 and len(ele)<=12:
+        if ele.isalpha() and len(ele)>=3 and len(ele)<=14:
             return True
-        if ele.isnumeric() and len(ele)<=6:
+        if ele.isnumeric() and len(ele)<=8:
             return True
         return False
     
