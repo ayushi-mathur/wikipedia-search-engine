@@ -8,9 +8,9 @@ from page import Page
 from indexer import Indexer
 from time import time
 
-
-FIELD_TO_WEIGHT_FIELDQ = {"t": 2500, "b": 50, "i": 2100, "c": 2000, "r": 25, "l": 10}
-FIELD_TO_WEIGHT_NORMALQ = {"t": 2500, "b": 300, "i": 2100, "c": 2000, "r": 1500, "l": 1500}
+MAX_BODY = 420
+FIELD_TO_WEIGHT_FIELDQ = {"t": 30, "b": 1.0, "i": 20, "c": 15, "r": 20, "l": 20}
+FIELD_TO_WEIGHT_NORMALQ = {"t": 45, "b": 0.3, "i": 10, "c": 0.2, "r": 0.1, "l": 0.1}
 class fileQuery:
     def __init__(self, index_path) -> None:
         self.field_doc_heading = {}
@@ -201,8 +201,14 @@ def calculatescore(word, field, score_dict, isFieldQuery=False):
         # titlequery = TitleQuery(doc_file)
         
         # print(doc_data)
-
-        tf = Indexer.decode_number(term_freq)
+        if field == "t" or field=="i":
+            tf = 1
+        else:
+            if not isFieldQuery:
+                tf = min(Indexer.decode_number(term_freq), MAX_BODY)
+            else:
+                tf = min(Indexer.decode_number(term_freq), 500)
+        
         if doc_id in score_dict:
             # score_dict[doc_id] += curr_field_weight*tf   
             score_dict[doc_id] += curr_field_weight*tf*idf   
@@ -245,7 +251,8 @@ def rank_documents(query):
         heapq._heapify_max(pq)
 
         results = []
-        for i in range(10):
+        i = 0
+        while i <10:
             if not pq:
                 break
             top_ele = heapq._heappop_max(pq)
@@ -255,6 +262,9 @@ def rank_documents(query):
             doc_data = titlequery.fetchLine(doc_id)
             doc_data = doc_data.split(" ", 1)
             doc_title = doc_data[-1]
+            if doc_title.startswith("Wikipedia:") or doc_title.startswith("Module:") or doc_title.startswith("Help:"):
+                continue
+            i+=1
             results.append(f"{doc_id}, {doc_title} {top_ele[0]}")
         
         write_str = "\n".join(results)
@@ -275,7 +285,8 @@ def rank_documents(query):
         heapq._heapify_max(pq)
 
         results = []
-        for i in range(10):
+        i = 0
+        while i<10:
             if not pq:
                 break
             top_ele = heapq._heappop_max(pq)
@@ -285,7 +296,10 @@ def rank_documents(query):
             doc_data = titlequery.fetchLine(doc_id)
             doc_data = doc_data.split(" ", 1)
             doc_title = doc_data[-1]
-            results.append(f"{doc_id}, {doc_title}")
+            if doc_title.startswith("Wikipedia:") or doc_title.startswith("Module:") or doc_title.startswith("Help:"):
+                continue
+            i+=1
+            results.append(f"{doc_id}, {doc_title} {top_ele[0]}")
         write_str = "\n".join(results)
     # write_str+=("\n"+str(score_dict.get("+AgN")))
     return write_str
