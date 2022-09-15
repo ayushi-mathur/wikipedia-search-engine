@@ -10,8 +10,8 @@ from time import time
 import linecache
 
 MAX_BODY = 420
-FIELD_TO_WEIGHT_FIELDQ = {"t": 55, "b": 1.0, "i": 20, "c": 15, "r": 15, "l": 15}
-FIELD_TO_WEIGHT_NORMALQ = {"t": 45, "b": 0.3, "i": 10, "c": 0.2, "r": 0.1, "l": 0.1}
+FIELD_TO_WEIGHT_FIELDQ = {"t": 55, "b": 1.2, "i": 20, "c": 15, "r": 16, "l": 16}
+FIELD_TO_WEIGHT_NORMALQ = {"t": 45, "b": 0.3, "i": 10, "c": 1, "r": 0.1, "l": 0.1}
 class fileQuery:
     def __init__(self, index_path) -> None:
         self.field_doc_heading = {}
@@ -222,7 +222,7 @@ def calculatescore(word, field, score_dict, isFieldQuery=False):
         # titlequery = TitleQuery(doc_file)
         
         # print(doc_data)
-        if field == "t" or field=="i":
+        if (field == "t"  and not isFieldQuery) or field=="i":
             tf = 1
         else:
             if not isFieldQuery:
