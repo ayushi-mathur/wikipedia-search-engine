@@ -222,7 +222,8 @@ def calculatescore(word, field, score_dict, isFieldQuery=False):
         # titlequery = TitleQuery(doc_file)
         
         # print(doc_data)
-        if (field == "t"  and not isFieldQuery) or field=="i":
+        # if (field == "t"  and not isFieldQuery) or field=="i":
+        if field == "t" or field=="i":
             tf = 1
         else:
             if not isFieldQuery:
