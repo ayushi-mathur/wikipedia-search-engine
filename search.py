@@ -287,7 +287,7 @@ def rank_documents(query):
             if doc_title.startswith("Wikipedia:") or doc_title.startswith("Module:") or doc_title.startswith("Help:"):
                 continue
             i+=1
-            results.append(f"{doc_id}, {doc_title} {top_ele[0]}")
+            results.append(f"{doc_id}, {doc_title}")
         
         write_str = "\n".join(results)
         if write_str is None:
@@ -321,7 +321,7 @@ def rank_documents(query):
             if doc_title.startswith("Wikipedia:") or doc_title.startswith("Module:") or doc_title.startswith("Help:"):
                 continue
             i+=1
-            results.append(f"{doc_id}, {doc_title} {top_ele[0]}")
+            results.append(f"{doc_id}, {doc_title}")
         write_str = "\n".join(results)
     # write_str+=("\n"+str(score_dict.get("+AgN")))
     return write_str
