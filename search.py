@@ -7,6 +7,7 @@ import heapq
 from page import Page
 from indexer import Indexer
 from time import time
+import linecache
 
 MAX_BODY = 420
 FIELD_TO_WEIGHT_FIELDQ = {"t": 55, "b": 1.0, "i": 20, "c": 15, "r": 15, "l": 15}
@@ -118,7 +119,27 @@ class TitleQuery:
         titlefile.close()
         return ans       
 
+    # Linecache optimization
+    # def fetchLine(self, query):
+    #     query = normalizeTitles(query)
+    #     # print(self.offsets[:10])
+    #     # num_words = len(self.offsets)
 
+    #     # titlefile = open(self.title_file, "r")
+    #     # data = titlefile.readline().strip()
+    #     data = linecache.getline(self.title_file, 0).strip()
+    #     # data = data.split("\n")
+    #     lower = 0
+    #     indexer = Indexer()
+    #     query_num = indexer.decode_number(query)
+    #     base = data.split(" ", 1)[0]
+
+    #     base_num = indexer.decode_number(base)
+    #     line_no = query_num-base_num
+    #     # ans = data[line_no]
+    #     ans = linecache.getline(self.title_file, line_no)
+    #     # titlefile.close()
+    #     return ans 
     # OFFSET BASED FUNCTION. UNUSED.
     # def fetchLine(self, query):
     #     query = normalizeTitles(query)
