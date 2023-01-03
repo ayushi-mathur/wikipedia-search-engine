@@ -1,7 +1,3 @@
-**Roll no: 2019114006**
-
-**Name: Suyash Vardhan Mathur**
-
 ## Running Instructions
 
 Run the command below to index
